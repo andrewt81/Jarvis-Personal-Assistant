@@ -185,8 +185,8 @@ immutabile con digest al momento della build.
 - [x] token opachi salvati in PostgreSQL esclusivamente come hash;
 - [x] creazione atomica del primo nucleo e del profilo persona collegato;
 - [x] endpoint autenticato `GET /api/v1/me`;
-- [ ] endpoint di gestione dei profili del nucleo;
-- [ ] controlli autorizzativi per nucleo/ruolo sulle risorse applicative;
+- [x] endpoint di lettura dei nuclei e gestione dei profili persona;
+- [x] controlli autorizzativi `owner`/`adult`/`viewer` e isolamento fra nuclei;
 - audit minimo degli eventi di sicurezza;
 - limiti alle richieste di autenticazione senza introdurre nuovi servizi.
 
@@ -296,10 +296,12 @@ della migrazione e lo smoke test contro l'ambiente reale.
 | 22/10/2026 | Build e smoke test del container completati tramite Docker Desktop. |
 | 22/10/2026 | Implementate sessioni opache, Argon2id, login, refresh, logout e bootstrap proprietario. |
 | 22/10/2026 | Migrazioni e ciclo autenticazione verificati su PostgreSQL 17.11 temporaneo. |
+| 22/10/2026 | Aggiunti profili del nucleo, ruoli applicativi e test di isolamento multi-tenant. |
 
 ## Vincoli operativi del repository
 
-- Nessun commit, push o merge senza autorizzazione esplicita dell'utente.
+- Commit, push e merge verso `develop` sono autorizzati per il completamento autonomo dell'MVP.
+- La promozione o il deployment di `main` richiedono conferma esplicita sul rilascio pronto.
 - Nessun segreto, documento personale o file `.env` reale nel repository.
 - Le decisioni irreversibili o le nuove tecnologie devono essere motivate e discusse prima
   dell'adozione.
