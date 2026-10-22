@@ -72,11 +72,9 @@ solo quando emergerà un caso d'uso concreto.
 - Le funzioni sensibili nell'app Android dovranno poter essere protette con biometria o PIN
   e usare lo storage sicuro del sistema per le credenziali locali.
 
-Tecnologia Android ancora da confermare prima dell'implementazione. La scelta proposta è
-Kotlin con Jetpack Compose, networking HTTP, database locale per cache controllata e
-WorkManager per sincronizzazioni differibili. La decisione diventerà vincolante soltanto
-dopo una breve prova tecnica su acquisizione documenti, autenticazione biometrica e
-notifiche.
+La tecnologia Android è Kotlin con Jetpack Compose. La prima build nativa usa Android Keystore
+per cifrare le sessioni, il selettore documenti del sistema e networking HTTPS diretto. Cache
+locale, biometria e WorkManager restano incrementi successivi al primo APK installabile.
 
 ## Infrastruttura confermata
 
@@ -224,11 +222,12 @@ immutabile con digest al momento della build.
 
 ### Incremento 5 - Android MVP
 
-- accesso e sblocco biometrico;
-- schermata Oggi con poche priorità;
+- [x] accesso con sessione cifrata in Android Keystore e refresh automatico;
+- [ ] sblocco biometrico locale;
+- [x] schermata Oggi con poche priorità;
 - prossimi appuntamenti e scadenze;
 - chat testuale;
-- acquisizione foto/PDF e avanzamento upload;
+- [x] acquisizione PDF/immagine/testo e upload;
 - dettaglio documento con riassunto, dati estratti e azioni proposte;
 - schermata "Cosa devo fare?";
 - notifiche locali iniziali, con regole conservative.
@@ -313,6 +312,7 @@ della migrazione e lo smoke test contro l'ambiente reale.
 | 22/10/2026 | Implementato il ciclo documenti privati PostgreSQL/RustFS con hash e autorizzazione. |
 | 22/10/2026 | Preparato il pacchetto Compose, verifica immagine, rilascio e rollback per Public-Jarvis. |
 | 22/10/2026 | Implementate le attività della schermata Oggi con priorità, scadenze e collegamenti. |
+| 22/10/2026 | Creato e compilato il primo APK Android nativo con login, Oggi e upload documenti. |
 
 ## Vincoli operativi del repository
 

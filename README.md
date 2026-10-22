@@ -78,3 +78,17 @@ The backend:
 - handles `SIGTERM` through the ASGI server;
 - exposes `/health/live` and `/health/ready`;
 - stores structured data in PostgreSQL and persistent files in S3-compatible storage.
+
+## Android MVP
+
+The native Kotlin/Compose client lives in `android/`. It defaults to
+`https://jarvis.tosatto.net` and can be built reproducibly with:
+
+```text
+cd android
+./gradlew :app:assembleDebug
+```
+
+The resulting private-test APK is `android/app/build/outputs/apk/debug/app-debug.apk`. Every
+successful update to `main` also publishes it as a GitHub Actions artifact. Tokens are encrypted
+with Android Keystore; cleartext network traffic and Android cloud backup are disabled.
