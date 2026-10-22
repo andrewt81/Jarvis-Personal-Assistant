@@ -8,13 +8,13 @@ The evolving product scope, decisions, progress log and MVP roadmap are maintain
 Development follows the `develop` -> `main` promotion model documented in
 [`CONTRIBUTING.md`](CONTRIBUTING.md). The `main` branch represents production.
 
-The repository is currently in its first backend milestone. The implemented surface is deliberately small:
+The repository contains the first end-to-end MVP release candidate:
 
-- process liveness;
-- dependency readiness for PostgreSQL and S3-compatible storage;
-- application version endpoint;
-- initial multi-user database migration;
-- container and deployment contracts compatible with the existing Jarvis infrastructure.
+- multi-user authentication and household roles;
+- private document storage in PostgreSQL and S3-compatible RustFS;
+- the household “Today” task workflow;
+- a native Android client for login, tasks and document upload;
+- hardened container and deployment contracts compatible with the Jarvis infrastructure.
 
 ## Local backend
 
@@ -55,6 +55,9 @@ python -m jarvis.cli create-owner --email marco@example.com --household "Famigli
 The password is requested without echo and never accepted as a command-line argument. Public API
 registration remains disabled. Authentication endpoints are available under `/api/v1/auth`, and
 `GET /api/v1/me` validates the current bearer session.
+
+Repeated failed logins are limited per client and account. Authentication outcomes are recorded
+in an append-only security audit table without storing raw email addresses, passwords or tokens.
 
 Authenticated users can list their households with `GET /api/v1/households`. Household members
 can read profiles under `GET /api/v1/households/{household_id}/people`; owners and adults can

@@ -149,7 +149,7 @@ immutabile con digest al momento della build.
 
 ### Verifiche locali
 
-- 17 test automatici superati e un test PostgreSQL d'integrazione disponibile su richiesta.
+- 19 test automatici superati e un test PostgreSQL d'integrazione disponibile su richiesta.
 - Controlli Ruff e formattazione superati.
 - Compilazione dei moduli Python superata.
 - SQL della migrazione generato offline correttamente per PostgreSQL.
@@ -190,8 +190,9 @@ immutabile con digest al momento della build.
 - [x] endpoint autenticato `GET /api/v1/me`;
 - [x] endpoint di lettura dei nuclei e gestione dei profili persona;
 - [x] controlli autorizzativi `owner`/`adult`/`viewer` e isolamento fra nuclei;
-- audit minimo degli eventi di sicurezza;
-- limiti alle richieste di autenticazione senza introdurre nuovi servizi.
+- [x] audit minimo persistente di login, refresh e logout, senza credenziali in chiaro;
+- [x] limiti in memoria ai tentativi di autenticazione per client e account, adeguati alla
+  singola istanza prevista dall'MVP e senza introdurre nuovi servizi.
 
 ### Incremento 3 - documenti
 
@@ -317,6 +318,7 @@ della migrazione e lo smoke test contro l'ambiente reale.
 | 22/10/2026 | Implementate le attività della schermata Oggi con priorità, scadenze e collegamenti. |
 | 22/10/2026 | Creato e compilato il primo APK Android nativo con login, Oggi e upload documenti. |
 | 22/10/2026 | Superato il collaudo end-to-end dell'MVP su PostgreSQL e RustFS reali; corretta la tipizzazione SQL degli aggiornamenti attività. |
+| 22/10/2026 | Aggiunti audit persistente dell'autenticazione, limiti ai tentativi di accesso e gestione sicura degli header del proxy. |
 
 ## Vincoli operativi del repository
 

@@ -15,6 +15,7 @@ from jarvis.api.health import router as health_router
 from jarvis.api.households import router as households_router
 from jarvis.api.router import router as api_router
 from jarvis.api.tasks import router as tasks_router
+from jarvis.auth.rate_limit import AuthenticationRateLimiter
 from jarvis.auth.service import AuthService
 from jarvis.core.config import Settings
 from jarvis.core.logging import configure_logging
@@ -38,6 +39,7 @@ def create_app(
     postgresql_health: HealthChecker | None = None,
     s3_health: HealthChecker | None = None,
     auth_service: AuthService | None = None,
+    authentication_rate_limiter: AuthenticationRateLimiter | None = None,
     household_service: HouseholdService | None = None,
     document_service: DocumentService | None = None,
     task_service: TaskService | None = None,
@@ -61,6 +63,9 @@ def create_app(
     application.state.s3_health = s3_health or S3HealthChecker(application_settings)
     application.state.auth_service = auth_service or AuthService(
         PostgreSQLAuthRepository(application_settings)
+    )
+    application.state.authentication_rate_limiter = (
+        authentication_rate_limiter or AuthenticationRateLimiter()
     )
     application.state.household_service = household_service or HouseholdService(
         PostgreSQLHouseholdRepository(application_settings)

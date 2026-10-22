@@ -8,6 +8,7 @@ from fastapi import APIRouter, Header, HTTPException, Request, Response, status
 from pydantic import BaseModel, ConfigDict, Field
 
 from jarvis.auth.models import AuthenticatedUser, TokenPair
+from jarvis.auth.rate_limit import AuthenticationRateLimiter
 from jarvis.auth.service import AuthenticationError, AuthService, InvalidSessionError
 
 router = APIRouter(prefix="/api/v1", tags=["authentication"])
@@ -40,6 +41,10 @@ class TokenResponse(BaseModel):
 
 def _service(request: Request) -> AuthService:
     return request.app.state.auth_service
+
+
+def _rate_limiter(request: Request) -> AuthenticationRateLimiter:
+    return request.app.state.authentication_rate_limiter
 
 
 def _bearer_token(authorization: str | None) -> str:
@@ -80,10 +85,23 @@ async def current_user(
 
 @router.post("/auth/login", response_model=TokenResponse)
 async def login(payload: LoginRequest, request: Request) -> TokenResponse:
+    client_key = request.client.host if request.client is not None else "unknown"
+    account_key = (
+        _service(request).hash_subject(_service(request).normalize_email(payload.email)).hex()
+    )
+    retry_after = _rate_limiter(request).retry_after(client_key, account_key)
+    if retry_after is not None:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many authentication attempts",
+            headers={"Retry-After": str(retry_after)},
+        )
     try:
         pair = await _service(request).login(payload.email, payload.password)
     except AuthenticationError as error:
+        _rate_limiter(request).failure(client_key, account_key)
         raise _unauthorized() from error
+    _rate_limiter(request).success(account_key)
     return _token_response(pair)
 
 

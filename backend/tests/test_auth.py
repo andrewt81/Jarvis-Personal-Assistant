@@ -9,6 +9,7 @@ from uuid import UUID, uuid4
 import httpx
 from jarvis.auth.models import Session, User
 from jarvis.auth.passwords import PasswordManager
+from jarvis.auth.rate_limit import AuthenticationRateLimiter, RateLimit
 from jarvis.auth.service import AuthService, InvalidSessionError
 from jarvis.core.config import Settings
 from jarvis.main import create_app
@@ -18,6 +19,7 @@ class InMemoryAuthRepository:
     def __init__(self, user: User) -> None:
         self.users = {user.id: user}
         self.sessions: dict[UUID, Session] = {}
+        self.security_events: list[tuple[str, UUID | None, bytes | None]] = []
 
     async def find_user_by_email(self, email: str) -> User | None:
         return next((user for user in self.users.values() if user.email == email), None)
@@ -78,6 +80,15 @@ class InMemoryAuthRepository:
     async def revoke_session(self, session_id: UUID, revoked_at: datetime) -> None:
         self.sessions[session_id] = replace(self.sessions[session_id], revoked_at=revoked_at)
 
+    async def record_security_event(
+        self,
+        event_type: str,
+        *,
+        user_id: UUID | None = None,
+        subject_hash: bytes | None = None,
+    ) -> None:
+        self.security_events.append((event_type, user_id, subject_hash))
+
     def create_first_owner(
         self,
         *,
@@ -130,6 +141,11 @@ def test_login_refresh_and_logout_rotate_and_revoke_tokens() -> None:
         pass
     else:
         raise AssertionError("Revoked access token remained valid")
+    assert [event[0] for event in repository.security_events] == [
+        "authentication.login.succeeded",
+        "authentication.refresh.succeeded",
+        "authentication.logout.succeeded",
+    ]
 
 
 def test_auth_api_does_not_reveal_which_credential_failed() -> None:
@@ -235,6 +251,49 @@ def test_auth_api_login_me_refresh_and_logout() -> None:
         )
     )
     assert rejected.status_code == 401
+
+
+def test_auth_api_limits_repeated_failed_logins() -> None:
+    passwords = PasswordManager()
+    user = User(
+        id=uuid4(),
+        email="marco@example.test",
+        password_hash=passwords.hash("correct horse battery staple"),
+        is_active=True,
+    )
+    service = AuthService(InMemoryAuthRepository(user), password_manager=passwords)
+    limiter = AuthenticationRateLimiter(
+        client_limit=RateLimit(1, 60),
+        account_limit=RateLimit(1, 60),
+    )
+    app = create_app(
+        settings=_settings(),
+        postgresql_health=PassingHealthChecker(),
+        s3_health=PassingHealthChecker(),
+        auth_service=service,
+        authentication_rate_limiter=limiter,
+    )
+
+    first = asyncio.run(
+        _request(
+            app,
+            "POST",
+            "/api/v1/auth/login",
+            json={"email": user.email, "password": "incorrect"},
+        )
+    )
+    limited = asyncio.run(
+        _request(
+            app,
+            "POST",
+            "/api/v1/auth/login",
+            json={"email": user.email, "password": "incorrect"},
+        )
+    )
+
+    assert first.status_code == 401
+    assert limited.status_code == 429
+    assert int(limited.headers["Retry-After"]) >= 1
 
 
 async def _request(app, method: str, path: str, **kwargs) -> httpx.Response:

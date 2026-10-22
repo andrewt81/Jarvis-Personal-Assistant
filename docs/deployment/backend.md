@@ -37,6 +37,13 @@ same contract and can be compared with that host template before it is installed
 
 Restore the previous application-image digest and recreate the service. Database migrations must follow an expand/contract strategy and remain compatible with the previous application release. Do not run an automatic Alembic downgrade during rollback.
 
+## Reverse proxy boundary
+
+The production container accepts forwarded client headers because it is reachable only through
+the private Docker `proxy` network and publishes no host port. Traefik must remain the sole ingress
+and must replace untrusted forwarded headers. Do not expose port 8080 directly while
+`--forwarded-allow-ips=*` is enabled.
+
 The previous digest must be retained in the release log. Rollback changes only `JARVIS_IMAGE`,
 pulls that immutable image and recreates `backend`; it never restores application data from an
 unverified snapshot and never performs an automatic schema downgrade.
