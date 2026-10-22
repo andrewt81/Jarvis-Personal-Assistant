@@ -23,4 +23,4 @@ USER 10001:10001
 
 EXPOSE 8080
 
-CMD ["uvicorn", "jarvis.main:app", "--host", "0.0.0.0", "--port", "8080", "--no-access-log", "--timeout-graceful-shutdown", "25"]
+CMD ["uvicorn", "jarvis.main:app", "--host", "0.0.0.0", "--port", "8080", "--no-access-log", "--proxy-headers", "--forwarded-allow-ips", "*", "--timeout-graceful-shutdown", "25"]

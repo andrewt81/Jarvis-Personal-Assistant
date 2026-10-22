@@ -60,6 +60,15 @@ class PostgreSQLAuthRepository:
     async def revoke_session(self, session_id: UUID, revoked_at: datetime) -> None:
         await asyncio.to_thread(self._revoke_session, session_id, revoked_at)
 
+    async def record_security_event(
+        self,
+        event_type: str,
+        *,
+        user_id: UUID | None = None,
+        subject_hash: bytes | None = None,
+    ) -> None:
+        await asyncio.to_thread(self._record_security_event, event_type, user_id, subject_hash)
+
     def create_first_owner(
         self,
         *,
@@ -269,6 +278,27 @@ class PostgreSQLAuthRepository:
                     """
                 ),
                 {"id": session_id, "revoked_at": revoked_at},
+            )
+
+    def _record_security_event(
+        self,
+        event_type: str,
+        user_id: UUID | None,
+        subject_hash: bytes | None,
+    ) -> None:
+        with self._engine().begin() as connection:
+            connection.execute(
+                text(
+                    """
+                    INSERT INTO security_audit_events (user_id, event_type, subject_hash)
+                    VALUES (:user_id, :event_type, :subject_hash)
+                    """
+                ),
+                {
+                    "user_id": user_id,
+                    "event_type": event_type,
+                    "subject_hash": subject_hash,
+                },
             )
 
     @staticmethod

@@ -37,19 +37,33 @@ class AuthService:
         self._refresh_lifetime = refresh_lifetime
 
     async def login(self, email: str, password: str) -> TokenPair:
-        user = await self._repository.find_user_by_email(self.normalize_email(email))
+        normalized_email = self.normalize_email(email)
+        user = await self._repository.find_user_by_email(normalized_email)
         if user is None:
             await asyncio.to_thread(self._passwords.verify_dummy, password)
+            await self._repository.record_security_event(
+                "authentication.login.failed",
+                subject_hash=self.hash_subject(normalized_email),
+            )
             raise AuthenticationError
         password_valid = await asyncio.to_thread(
             self._passwords.verify, user.password_hash, password
         )
         if not user.is_active or not password_valid:
+            await self._repository.record_security_event(
+                "authentication.login.failed",
+                user_id=user.id,
+                subject_hash=self.hash_subject(normalized_email),
+            )
             raise AuthenticationError
         if self._passwords.needs_rehash(user.password_hash):
             updated_hash = await asyncio.to_thread(self._passwords.hash, password)
             await self._repository.update_password_hash(user.id, updated_hash)
-        return await self._new_session(user)
+        pair = await self._new_session(user)
+        await self._repository.record_security_event(
+            "authentication.login.succeeded", user_id=user.id
+        )
+        return pair
 
     async def authenticate(self, access_token: str) -> AuthenticatedUser:
         now = self._now()
@@ -67,9 +81,16 @@ class AuthService:
             self.hash_token(refresh_token)
         )
         if session is None or session.revoked_at is not None or session.refresh_expires_at <= now:
+            await self._repository.record_security_event(
+                "authentication.refresh.failed",
+                user_id=session.user_id if session is not None else None,
+            )
             raise InvalidSessionError
         user = await self._repository.find_user_by_id(session.user_id)
         if user is None or not user.is_active:
+            await self._repository.record_security_event(
+                "authentication.refresh.failed", user_id=session.user_id
+            )
             raise InvalidSessionError
 
         access_token = self.generate_token()
@@ -85,7 +106,13 @@ class AuthService:
             refresh_expires_at=refresh_expires_at,
         )
         if not rotated:
+            await self._repository.record_security_event(
+                "authentication.refresh.failed", user_id=user.id
+            )
             raise InvalidSessionError
+        await self._repository.record_security_event(
+            "authentication.refresh.succeeded", user_id=user.id
+        )
         return TokenPair(
             access_token=access_token,
             refresh_token=next_refresh_token,
@@ -98,6 +125,9 @@ class AuthService:
         session = await self._repository.find_session_by_access_hash(self.hash_token(access_token))
         if session is not None and session.revoked_at is None:
             await self._repository.revoke_session(session.id, self._now())
+            await self._repository.record_security_event(
+                "authentication.logout.succeeded", user_id=session.user_id
+            )
 
     async def _new_session(self, user: User) -> TokenPair:
         now = self._now()
@@ -128,6 +158,10 @@ class AuthService:
     @staticmethod
     def hash_token(token: str) -> bytes:
         return hashlib.sha256(token.encode("utf-8")).digest()
+
+    @staticmethod
+    def hash_subject(subject: str) -> bytes:
+        return hashlib.sha256(subject.encode("utf-8")).digest()
 
     @staticmethod
     def normalize_email(email: str) -> str:

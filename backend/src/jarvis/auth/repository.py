@@ -33,6 +33,14 @@ class AuthRepository(Protocol):
 
     async def revoke_session(self, session_id: UUID, revoked_at: datetime) -> None: ...
 
+    async def record_security_event(
+        self,
+        event_type: str,
+        *,
+        user_id: UUID | None = None,
+        subject_hash: bytes | None = None,
+    ) -> None: ...
+
     def create_first_owner(
         self,
         *,
