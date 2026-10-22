@@ -1,0 +1,68 @@
+services:
+  backend:
+    image: "${JARVIS_IMAGE:?Set JARVIS_IMAGE to an immutable image@sha256 reference}"
+    container_name: jarvis-backend
+    restart: unless-stopped
+    stop_grace_period: 30s
+    user: "10001:10001"
+    group_add:
+      - "${JARVIS_SECRETS_GID:?Set JARVIS_SECRETS_GID to the host jarvis-secrets GID}"
+    read_only: true
+    tmpfs:
+      - /tmp:size=128m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 2g
+    cpus: 1.5
+    pids_limit: 256
+    env_file:
+      - "${JARVIS_POSTGRES_ENV_FILE:-/opt/jarvis/config/postgresql.env}"
+      - "${JARVIS_S3_ENV_FILE:-/opt/jarvis/secrets/rustfs.env}"
+    environment:
+      JARVIS_ENVIRONMENT: production
+      JARVIS_HTTP_HOST: 0.0.0.0
+      JARVIS_HTTP_PORT: 8080
+      JARVIS_LOG_LEVEL: INFO
+      JARVIS_POSTGRES_PASSWORD_FILE: /run/secrets/postgresql_password
+    volumes:
+      - "${JARVIS_POSTGRES_PASSWORD_HOST_FILE:-/opt/jarvis/secrets/postgresql-password}:/run/secrets/postgresql_password:ro"
+    networks:
+      - proxy
+      - jarvis-app
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - >-
+          import urllib.request;
+          urllib.request.urlopen('http://127.0.0.1:8080/health/ready', timeout=4)
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: local
+      options:
+        max-size: 10m
+        max-file: "5"
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: proxy
+      traefik.http.routers.jarvis.rule: Host(`jarvis.tosatto.net`)
+      traefik.http.routers.jarvis.entrypoints: websecure
+      traefik.http.routers.jarvis.tls: "true"
+      traefik.http.routers.jarvis.tls.certresolver: letsencrypt
+      traefik.http.routers.jarvis.middlewares: jarvis-security@file
+      traefik.http.services.jarvis.loadbalancer.server.port: "8080"
+      traefik.http.services.jarvis.loadbalancer.healthcheck.path: /health/ready
+      traefik.http.services.jarvis.loadbalancer.healthcheck.interval: 30s
+      traefik.http.services.jarvis.loadbalancer.healthcheck.timeout: 5s
+
+networks:
+  proxy:
+    external: true
+  jarvis-app:
+    external: true
