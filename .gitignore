@@ -1,6 +1,9 @@
 .env
 .migration-test-secret
 .integration-test-secret
+android/.gradle/
+android/local.properties
+android/**/build/
 .venv/
 .deps/
 .pip-tmp/
