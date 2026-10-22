@@ -44,6 +44,18 @@ Migrations are explicit and separate from normal application startup:
 alembic upgrade head
 ```
 
+## First owner and authentication
+
+After applying migrations, create the first owner from an interactive administrative shell:
+
+```text
+python -m jarvis.cli create-owner --email marco@example.com --household "Famiglia" --display-name "Marco"
+```
+
+The password is requested without echo and never accepted as a command-line argument. Public API
+registration remains disabled. Authentication endpoints are available under `/api/v1/auth`, and
+`GET /api/v1/me` validates the current bearer session.
+
 ## Infrastructure contract
 
 The backend:

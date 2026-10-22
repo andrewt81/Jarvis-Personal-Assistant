@@ -9,11 +9,13 @@ The production host already provides `/opt/jarvis/deploy/compose.backend.templat
 3. Record the resulting application-image digest.
 4. Validate the production Compose configuration.
 5. Run `alembic upgrade head` explicitly with the new image.
-6. Update the application image reference to the new digest.
-7. Recreate the backend service.
-8. Wait for `/health/ready` to return HTTP 200.
-9. Run the smoke test.
-10. Verify that the existing Traefik `/ping` endpoint still returns HTTP 200.
+6. On the first installation only, create the first owner with the interactive
+   `python -m jarvis.cli create-owner` command inside the administrative container context.
+7. Update the application image reference to the new digest.
+8. Recreate the backend service.
+9. Wait for `/health/ready` to return HTTP 200.
+10. Run the smoke test.
+11. Verify that the existing Traefik `/ping` endpoint still returns HTTP 200.
 
 ## Rollback
 

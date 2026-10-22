@@ -10,6 +10,7 @@ readme = "README.md"
 requires-python = ">=3.12,<3.14"
 dependencies = [
   "alembic>=1.14,<2",
+  "argon2-cffi>=25.1,<26",
   "boto3>=1.35,<2",
   "fastapi>=0.115,<1",
   "psycopg[binary]>=3.2,<4",
@@ -34,6 +35,9 @@ where = ["backend/src"]
 [tool.pytest.ini_options]
 addopts = "-q --strict-markers"
 testpaths = ["backend/tests"]
+markers = [
+  "integration: requires explicitly configured external test services",
+]
 
 [tool.ruff]
 target-version = "py312"
