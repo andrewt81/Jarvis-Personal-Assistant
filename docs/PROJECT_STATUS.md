@@ -228,7 +228,7 @@ immutabile con digest al momento della build.
 
 - [x] accesso con sessione cifrata in Android Keystore e refresh automatico;
 - [ ] sblocco biometrico locale;
-- [x] schermata Oggi con poche priorità;
+- [x] schermata Oggi con elenco, creazione rapida e completamento attività;
 - prossimi appuntamenti e scadenze;
 - chat testuale;
 - [x] acquisizione PDF/immagine/testo e upload;
@@ -319,6 +319,7 @@ della migrazione e lo smoke test contro l'ambiente reale.
 | 22/10/2026 | Creato e compilato il primo APK Android nativo con login, Oggi e upload documenti. |
 | 22/10/2026 | Superato il collaudo end-to-end dell'MVP su PostgreSQL e RustFS reali; corretta la tipizzazione SQL degli aggiornamenti attività. |
 | 22/10/2026 | Aggiunti audit persistente dell'autenticazione, limiti ai tentativi di accesso e gestione sicura degli header del proxy. |
+| 22/10/2026 | Completato il flusso Android Oggi con creazione rapida delle attività; APK ricompilato e firma v2 verificata. |
 
 ## Vincoli operativi del repository
 

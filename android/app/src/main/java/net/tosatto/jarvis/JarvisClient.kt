@@ -112,6 +112,16 @@ class JarvisClient(private val store: SecureSessionStore) {
         request("PUT", "/api/v1/households/$householdId/tasks/${task.id}", body.toString().toByteArray(), "application/json")
     }
 
+    suspend fun createTask(householdId: String, title: String) = withContext(Dispatchers.IO) {
+        val body = JSONObject().put("title", title.trim())
+        request(
+            "POST",
+            "/api/v1/households/$householdId/tasks",
+            body.toString().toByteArray(),
+            "application/json",
+        )
+    }
+
     suspend fun upload(householdId: String, filename: String, mediaType: String, content: ByteArray) = withContext(Dispatchers.IO) {
         request("POST", "/api/v1/households/$householdId/documents", content, mediaType, headers = mapOf("X-Filename" to filename))
     }

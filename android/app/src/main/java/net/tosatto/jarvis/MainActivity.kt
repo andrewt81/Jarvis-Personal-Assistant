@@ -91,6 +91,8 @@ private fun Today(client: JarvisClient, onLogout: () -> Unit) {
     var household by remember { mutableStateOf<Household?>(null) }
     var tasks by remember { mutableStateOf<List<JarvisTask>>(emptyList()) }
     var message by remember { mutableStateOf("Caricamento…") }
+    var newTaskTitle by remember { mutableStateOf("") }
+    var creatingTask by remember { mutableStateOf(false) }
 
     fun refresh() = scope.launch {
         runCatching {
@@ -128,13 +130,50 @@ private fun Today(client: JarvisClient, onLogout: () -> Unit) {
             Button(onClick = { picker.launch(arrayOf("application/pdf", "image/*", "text/plain")) }) { Text("Carica documento") }
             Button(onClick = { refresh() }) { Text("Aggiorna") }
         }
+        Row(
+            Modifier.fillMaxWidth().padding(top = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            OutlinedTextField(
+                newTaskTitle,
+                { newTaskTitle = it },
+                label = { Text("Nuova attività") },
+                singleLine = true,
+                modifier = Modifier.weight(1f),
+            )
+            Button(
+                enabled = newTaskTitle.isNotBlank() && !creatingTask && household != null,
+                onClick = {
+                    creatingTask = true
+                    scope.launch {
+                        runCatching { client.createTask(household!!.id, newTaskTitle) }
+                            .onSuccess {
+                                newTaskTitle = ""
+                                message = "Attività aggiunta"
+                                refresh()
+                            }
+                            .onFailure { message = it.message ?: "Creazione non riuscita" }
+                        creatingTask = false
+                    }
+                },
+            ) { Text(if (creatingTask) "Aggiungo…" else "Aggiungi") }
+        }
         if (message.isNotBlank()) Text(message, modifier = Modifier.padding(vertical = 16.dp))
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        LazyColumn(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
             items(tasks, key = { it.id }) { task ->
                 Card(Modifier.fillMaxWidth()) {
                     Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                         Column(Modifier.weight(1f)) { Text(task.title); Text(task.priority.uppercase()) }
-                        Button(onClick = { scope.launch { client.complete(household!!.id, task); refresh() } }) { Text("Fatto") }
+                        Button(onClick = {
+                            scope.launch {
+                                runCatching { client.complete(household!!.id, task) }
+                                    .onSuccess { refresh() }
+                                    .onFailure { message = it.message ?: "Aggiornamento non riuscito" }
+                            }
+                        }) { Text("Fatto") }
                     }
                 }
             }
