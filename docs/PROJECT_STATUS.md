@@ -192,12 +192,13 @@ immutabile con digest al momento della build.
 
 ### Incremento 3 - documenti
 
-- upload diretto dall'app Android;
-- convalida formato, dimensione e hash;
-- object key isolata per nucleo e documento;
-- metadati e stato di elaborazione in PostgreSQL;
-- download autorizzato e cancellazione coordinata tra database e RustFS;
-- conservazione dell'originale;
+- [x] upload autenticato dall'app Android tramite body HTTP;
+- [x] convalida formato, limite 25 MiB, nome sicuro e hash SHA-256;
+- [x] object key isolata per nucleo e documento;
+- [x] metadati in PostgreSQL e originale privato in RustFS;
+- [x] download mediato dal backend dopo autorizzazione, senza esporre RustFS;
+- [x] cancellazione coordinata tra database e RustFS;
+- [x] conservazione dell'originale;
 - modello per testo estratto, fonte e versione dell'analisi.
 
 ### Incremento 4 - comprensione e pratiche
@@ -297,6 +298,7 @@ della migrazione e lo smoke test contro l'ambiente reale.
 | 22/10/2026 | Implementate sessioni opache, Argon2id, login, refresh, logout e bootstrap proprietario. |
 | 22/10/2026 | Migrazioni e ciclo autenticazione verificati su PostgreSQL 17.11 temporaneo. |
 | 22/10/2026 | Aggiunti profili del nucleo, ruoli applicativi e test di isolamento multi-tenant. |
+| 22/10/2026 | Implementato il ciclo documenti privati PostgreSQL/RustFS con hash e autorizzazione. |
 
 ## Vincoli operativi del repository
 
