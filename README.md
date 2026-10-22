@@ -61,6 +61,11 @@ can read profiles under `GET /api/v1/households/{household_id}/people`; owners a
 create or update them. Every lookup verifies membership server-side and hides resources belonging
 to another household.
 
+Owners and adults can upload private PDF, text and image originals (up to 25 MiB) through the
+authenticated household document API. PostgreSQL stores metadata and SHA-256 hashes; RustFS stores
+the bytes under a household-scoped key. Downloads are proxied by the backend after authorization,
+so the private RustFS endpoint is never exposed to Android clients.
+
 ## Infrastructure contract
 
 The backend:
