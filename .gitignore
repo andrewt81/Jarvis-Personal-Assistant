@@ -1,5 +1,6 @@
 .env
 .migration-test-secret
+.integration-test-secret
 .venv/
 .deps/
 .pip-tmp/

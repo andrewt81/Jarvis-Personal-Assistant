@@ -4,8 +4,11 @@ alembic==1.20.1
 annotated-doc==0.0.5
 annotated-types==0.8.0
 anyio==4.15.1
+argon2-cffi==25.1.0
+argon2-cffi-bindings==26.1.0
 boto3==1.43.117
 botocore==1.43.117
+cffi==2.1.1
 click==8.5.0
 colorama==0.4.6
 fastapi==0.159.1
@@ -19,6 +22,7 @@ opentelemetry-api==1.45.1
 packaging==26.3
 psycopg==3.3.6
 psycopg-binary==3.3.6
+pycparser==3.12
 pydantic==2.14.1
 pydantic_core==2.50.1
 python-dateutil==2.9.0.post0

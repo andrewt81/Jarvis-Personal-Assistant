@@ -151,7 +151,7 @@ immutabile con digest al momento della build.
 
 ### Verifiche locali
 
-- 6 test automatici superati.
+- 9 test automatici superati e un test PostgreSQL d'integrazione disponibile su richiesta.
 - Controlli Ruff e formattazione superati.
 - Compilazione dei moduli Python superata.
 - SQL della migrazione generato offline correttamente per PostgreSQL.
@@ -161,6 +161,8 @@ immutabile con digest al momento della build.
   porta host pubblicata.
 - Nel container, liveness e versione rispondono `200`; senza dipendenze configurate la
   readiness risponde correttamente `503` senza esporre dettagli sensibili.
+- Autenticazione verificata con test unitari/API e con un ciclo completo su PostgreSQL 17.11
+  temporaneo: migrazioni, creazione proprietario, login, refresh atomico e revoca.
 - Nessuna connessione o modifica è stata effettuata sulle VM di produzione.
 
 ## MVP proposto
@@ -177,11 +179,14 @@ immutabile con digest al momento della build.
 
 ### Incremento 2 - autenticazione e nucleo familiare
 
-- registrazione controllata del primo utente;
-- login, refresh e logout con rotazione delle sessioni;
-- hashing password con algoritmo moderno e parametri configurabili;
-- creazione del nucleo e dei profili persona;
-- middleware di autenticazione e controlli per nucleo/ruolo;
+- [x] creazione amministrativa e non pubblica del primo proprietario;
+- [x] login, refresh e logout con rotazione atomica delle sessioni;
+- [x] hashing password Argon2id;
+- [x] token opachi salvati in PostgreSQL esclusivamente come hash;
+- [x] creazione atomica del primo nucleo e del profilo persona collegato;
+- [x] endpoint autenticato `GET /api/v1/me`;
+- [ ] endpoint di gestione dei profili del nucleo;
+- [ ] controlli autorizzativi per nucleo/ruolo sulle risorse applicative;
 - audit minimo degli eventi di sicurezza;
 - limiti alle richieste di autenticazione senza introdurre nuovi servizi.
 
@@ -289,6 +294,8 @@ della migrazione e lo smoke test contro l'ambiente reale.
 | 22/10/2026 | Creato localmente lo scheletro backend, la migrazione identità, il container e i test. |
 | 22/10/2026 | Superati test, lint, formattazione, compilazione e generazione SQL offline. |
 | 22/10/2026 | Build e smoke test del container completati tramite Docker Desktop. |
+| 22/10/2026 | Implementate sessioni opache, Argon2id, login, refresh, logout e bootstrap proprietario. |
+| 22/10/2026 | Migrazioni e ciclo autenticazione verificati su PostgreSQL 17.11 temporaneo. |
 
 ## Vincoli operativi del repository
 
