@@ -149,7 +149,7 @@ immutabile con digest al momento della build.
 
 ### Verifiche locali
 
-- 9 test automatici superati e un test PostgreSQL d'integrazione disponibile su richiesta.
+- 17 test automatici superati e un test PostgreSQL d'integrazione disponibile su richiesta.
 - Controlli Ruff e formattazione superati.
 - Compilazione dei moduli Python superata.
 - SQL della migrazione generato offline correttamente per PostgreSQL.
@@ -161,6 +161,9 @@ immutabile con digest al momento della build.
   readiness risponde correttamente `503` senza esporre dettagli sensibili.
 - Autenticazione verificata con test unitari/API e con un ciclo completo su PostgreSQL 17.11
   temporaneo: migrazioni, creazione proprietario, login, refresh atomico e revoca.
+- Percorso MVP end-to-end verificato su PostgreSQL 17.11 e RustFS 1.0.1 reali in Docker:
+  readiness, login, nucleo, creazione e completamento attività, upload/download/cancellazione
+  documento, rotazione della sessione e logout.
 - Nessuna connessione o modifica è stata effettuata sulle VM di produzione.
 - Preparato il Compose di produzione aderente al contratto Jarvis/Edith, senza porte host.
 - Preparata la pubblicazione GHCR su aggiornamenti di `main`, con digest riportato nel riepilogo.
@@ -313,6 +316,7 @@ della migrazione e lo smoke test contro l'ambiente reale.
 | 22/10/2026 | Preparato il pacchetto Compose, verifica immagine, rilascio e rollback per Public-Jarvis. |
 | 22/10/2026 | Implementate le attività della schermata Oggi con priorità, scadenze e collegamenti. |
 | 22/10/2026 | Creato e compilato il primo APK Android nativo con login, Oggi e upload documenti. |
+| 22/10/2026 | Superato il collaudo end-to-end dell'MVP su PostgreSQL e RustFS reali; corretta la tipizzazione SQL degli aggiornamenti attività. |
 
 ## Vincoli operativi del repository
 

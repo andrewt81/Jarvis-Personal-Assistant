@@ -74,13 +74,15 @@ class PostgreSQLTaskRepository:
                 text("""
                 INSERT INTO tasks (id, household_id, person_id, document_id, created_by_user_id,
                                    title, notes, priority, status, due_at)
-                SELECT :id, :household_id, :person_id, :document_id, :user_id,
+                SELECT :id, :household_id, CAST(:person_id AS uuid),
+                       CAST(:document_id AS uuid), :user_id,
                        :title, :notes, :priority, 'open', :due_at
-                WHERE (:person_id IS NULL OR EXISTS (
-                    SELECT 1 FROM people WHERE id = :person_id AND household_id = :household_id))
-                  AND (:document_id IS NULL OR EXISTS (
+                WHERE (CAST(:person_id AS uuid) IS NULL OR EXISTS (
+                    SELECT 1 FROM people
+                    WHERE id = CAST(:person_id AS uuid) AND household_id = :household_id))
+                  AND (CAST(:document_id AS uuid) IS NULL OR EXISTS (
                     SELECT 1 FROM documents
-                    WHERE id = :document_id AND household_id = :household_id))
+                    WHERE id = CAST(:document_id AS uuid) AND household_id = :household_id))
                 RETURNING id, household_id, person_id, document_id, created_by_user_id, title,
                           notes, priority, status, due_at, completed_at, created_at, updated_at
             """),
@@ -92,18 +94,21 @@ class PostgreSQLTaskRepository:
         with self._engine().begin() as connection:
             row = connection.execute(
                 text("""
-                UPDATE tasks SET person_id = :person_id, document_id = :document_id,
-                    title = :title, notes = :notes, priority = :priority, status = :status,
+                UPDATE tasks SET person_id = CAST(:person_id AS uuid),
+                    document_id = CAST(:document_id AS uuid),
+                    title = :title, notes = :notes, priority = CAST(:priority AS varchar),
+                    status = CAST(:status AS varchar),
                     due_at = :due_at,
-                    completed_at = CASE WHEN :status = 'done'
+                    completed_at = CASE WHEN CAST(:status AS varchar) = 'done'
                         THEN COALESCE(completed_at, now()) ELSE NULL END,
                     updated_at = now()
                 WHERE id = :id AND household_id = :household_id
-                  AND (:person_id IS NULL OR EXISTS (
-                    SELECT 1 FROM people WHERE id = :person_id AND household_id = :household_id))
-                  AND (:document_id IS NULL OR EXISTS (
+                  AND (CAST(:person_id AS uuid) IS NULL OR EXISTS (
+                    SELECT 1 FROM people
+                    WHERE id = CAST(:person_id AS uuid) AND household_id = :household_id))
+                  AND (CAST(:document_id AS uuid) IS NULL OR EXISTS (
                     SELECT 1 FROM documents
-                    WHERE id = :document_id AND household_id = :household_id))
+                    WHERE id = CAST(:document_id AS uuid) AND household_id = :household_id))
                 RETURNING id, household_id, person_id, document_id, created_by_user_id, title,
                           notes, priority, status, due_at, completed_at, created_at, updated_at
             """),
