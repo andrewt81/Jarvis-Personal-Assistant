@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: read
+  packages: write
 
 concurrency:
   group: main-quality-${{ github.event.pull_request.number || github.ref }}
@@ -44,3 +45,31 @@ jobs:
 
       - name: Build immutable backend image
         run: docker build --file docker/backend.Dockerfile .
+
+  publish:
+    name: Publish production image
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Authenticate to GitHub Container Registry
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "$GHCR_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+
+      - name: Build and publish commit image
+        env:
+          REGISTRY_IMAGE: ghcr.io/${{ github.repository }}/backend
+        run: |
+          image=$(echo "$REGISTRY_IMAGE" | tr '[:upper:]' '[:lower:]')
+          docker build --file docker/backend.Dockerfile --tag "$image:${GITHUB_SHA}" .
+          docker push "$image:${GITHUB_SHA}"
+          manifest=$(docker buildx imagetools inspect "$image:${GITHUB_SHA}" --format '{{.Manifest.Digest}}')
+          digest="$image@$manifest"
+          echo "### Production image" >> "$GITHUB_STEP_SUMMARY"
+          echo '\`'"$digest"'\`' >> "$GITHUB_STEP_SUMMARY"

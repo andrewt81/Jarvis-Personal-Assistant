@@ -164,6 +164,8 @@ immutabile con digest al momento della build.
 - Autenticazione verificata con test unitari/API e con un ciclo completo su PostgreSQL 17.11
   temporaneo: migrazioni, creazione proprietario, login, refresh atomico e revoca.
 - Nessuna connessione o modifica è stata effettuata sulle VM di produzione.
+- Preparato il Compose di produzione aderente al contratto Jarvis/Edith, senza porte host.
+- Preparata la pubblicazione GHCR su aggiornamenti di `main`, con digest riportato nel riepilogo.
 
 ## MVP proposto
 
@@ -299,6 +301,7 @@ della migrazione e lo smoke test contro l'ambiente reale.
 | 22/10/2026 | Migrazioni e ciclo autenticazione verificati su PostgreSQL 17.11 temporaneo. |
 | 22/10/2026 | Aggiunti profili del nucleo, ruoli applicativi e test di isolamento multi-tenant. |
 | 22/10/2026 | Implementato il ciclo documenti privati PostgreSQL/RustFS con hash e autorizzazione. |
+| 22/10/2026 | Preparato il pacchetto Compose, verifica immagine, rilascio e rollback per Public-Jarvis. |
 
 ## Vincoli operativi del repository
 
