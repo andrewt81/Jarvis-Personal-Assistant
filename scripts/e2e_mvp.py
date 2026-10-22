@@ -87,6 +87,25 @@ def main() -> int:
     require_status(status, 201, "document upload")
     document_id = document["id"]
 
+    status, analysis = json_call(
+        "POST",
+        f"/api/v1/households/{household_id}/documents/{document_id}/analysis",
+        token=token,
+    )
+    require_status(status, 200, "document analysis")
+    if analysis["facts"][0]["source_text"] != "Jarvis private E2E document":
+        raise RuntimeError("analysis did not preserve source evidence")
+    if not analysis["suggested_actions"]:
+        raise RuntimeError("analysis did not suggest an action")
+    status, cached_analysis = json_call(
+        "POST",
+        f"/api/v1/households/{household_id}/documents/{document_id}/analysis",
+        token=token,
+    )
+    require_status(status, 200, "cached document analysis")
+    if cached_analysis["id"] != analysis["id"]:
+        raise RuntimeError("repeated analysis was not idempotent")
+
     status, downloaded = call(
         "GET", f"/api/v1/households/{household_id}/documents/{document_id}/content", token=token
     )

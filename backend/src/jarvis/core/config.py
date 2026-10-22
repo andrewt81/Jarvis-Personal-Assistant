@@ -37,6 +37,10 @@ class Settings:
     s3_path_style: bool
     s3_access_key_id: str = field(repr=False)
     s3_secret_access_key: str = field(repr=False)
+    ai_provider: str = "disabled"
+    ai_model: str = "gpt-6-luna"
+    ai_api_base_url: str = "https://api.openai.com/v1"
+    ai_api_key_file: Path = field(default=Path("/run/secrets/openai_api_key"), repr=False)
 
     @classmethod
     def from_environment(cls, environment: Mapping[str, str] | None = None) -> Settings:
@@ -95,6 +99,18 @@ class Settings:
                 "AWS_SECRET_ACCESS_KEY",
                 "RUSTFS_SECRET_KEY",
             ),
+            ai_provider=_first(env, "JARVIS_AI_PROVIDER", default="disabled").casefold(),
+            ai_model=_first(env, "JARVIS_AI_MODEL", default="gpt-6-luna"),
+            ai_api_base_url=_first(
+                env, "JARVIS_AI_API_BASE_URL", default="https://api.openai.com/v1"
+            ).rstrip("/"),
+            ai_api_key_file=Path(
+                _first(
+                    env,
+                    "JARVIS_AI_API_KEY_FILE",
+                    default="/run/secrets/openai_api_key",
+                )
+            ),
         )
 
     @property
@@ -124,6 +140,12 @@ class Settings:
         if not password:
             raise RuntimeError("PostgreSQL password file is empty")
         return password
+
+    def read_ai_api_key(self) -> str:
+        api_key = self.ai_api_key_file.read_text(encoding="utf-8").strip()
+        if not api_key:
+            raise RuntimeError("AI API key file is empty")
+        return api_key
 
     def sqlalchemy_url(self) -> str:
         if not self.postgres_configured:

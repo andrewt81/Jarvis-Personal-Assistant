@@ -5,7 +5,8 @@ from pathlib import PurePath
 from typing import Protocol
 from uuid import UUID, uuid4
 
-from jarvis.documents.models import Document
+from jarvis.documents.analysis import AnalysisUnavailableError, DocumentAnalyzer
+from jarvis.documents.models import Document, DocumentAnalysis
 from jarvis.households.repository import HouseholdRepository
 from jarvis.households.service import HouseholdNotFoundError, HouseholdPermissionError
 
@@ -45,16 +46,26 @@ class DocumentStorage(Protocol):
     async def get(self, key: str) -> bytes: ...
 
 
+class DocumentAnalysisRepository(Protocol):
+    async def create(self, analysis: DocumentAnalysis) -> DocumentAnalysis: ...
+
+    async def latest(self, household_id: UUID, document_id: UUID) -> DocumentAnalysis | None: ...
+
+
 class DocumentService:
     def __init__(
         self,
         repository: DocumentRepository,
         households: HouseholdRepository,
         storage: DocumentStorage,
+        analyses: DocumentAnalysisRepository | None = None,
+        analyzer: DocumentAnalyzer | None = None,
     ) -> None:
         self._repository = repository
         self._households = households
         self._storage = storage
+        self._analyses = analyses
+        self._analyzer = analyzer
 
     async def list(self, user_id: UUID, household_id: UUID) -> list[Document]:
         await self._membership(user_id, household_id)
@@ -122,6 +133,54 @@ class DocumentService:
         await self._storage.delete(document.object_key)
         if not await self._repository.delete(household_id, document_id):
             raise DocumentNotFoundError
+
+    async def analyze(
+        self, user_id: UUID, household_id: UUID, document_id: UUID
+    ) -> DocumentAnalysis:
+        await self._editor(user_id, household_id)
+        document = await self._repository.find(household_id, document_id)
+        if document is None:
+            raise DocumentNotFoundError
+        if self._analyses is None or self._analyzer is None:
+            raise AnalysisUnavailableError("Document analysis is not enabled")
+        existing = await self._analyses.latest(household_id, document_id)
+        if existing is not None and existing.source_sha256 == document.sha256:
+            return existing
+        content = await self._storage.get(document.object_key)
+        result = await self._analyzer.analyze(
+            filename=document.original_filename,
+            media_type=document.media_type,
+            content=content,
+        )
+        analysis = DocumentAnalysis(
+            id=uuid4(),
+            document_id=document.id,
+            household_id=household_id,
+            source_sha256=document.sha256,
+            provider=result.provider,
+            model=result.model,
+            document_type=result.document_type,
+            summary=result.summary,
+            facts=result.facts,
+            deadlines=result.deadlines,
+            suggested_actions=result.suggested_actions,
+            missing_information=result.missing_information,
+            created_at=None,
+        )
+        return await self._analyses.create(analysis)
+
+    async def latest_analysis(
+        self, user_id: UUID, household_id: UUID, document_id: UUID
+    ) -> DocumentAnalysis:
+        await self._membership(user_id, household_id)
+        if await self._repository.find(household_id, document_id) is None:
+            raise DocumentNotFoundError
+        if self._analyses is None:
+            raise AnalysisUnavailableError("Document analysis is not enabled")
+        analysis = await self._analyses.latest(household_id, document_id)
+        if analysis is None:
+            raise DocumentNotFoundError
+        return analysis
 
     async def _membership(self, user_id: UUID, household_id: UUID):
         membership = await self._households.find_membership(user_id, household_id)

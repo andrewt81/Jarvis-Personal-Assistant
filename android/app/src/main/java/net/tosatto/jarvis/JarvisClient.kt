@@ -27,6 +27,13 @@ data class JarvisTask(
     val personId: String?,
     val documentId: String?,
 )
+data class JarvisAnalysis(
+    val documentType: String,
+    val summary: String,
+    val suggestedActions: List<String>,
+    val deadlines: List<String>,
+    val missingInformation: List<String>,
+)
 
 class SecureSessionStore(context: Context) {
     private val preferences = context.getSharedPreferences("secure_session", Context.MODE_PRIVATE)
@@ -122,19 +129,37 @@ class JarvisClient(private val store: SecureSessionStore) {
         )
     }
 
-    suspend fun upload(householdId: String, filename: String, mediaType: String, content: ByteArray) = withContext(Dispatchers.IO) {
-        request("POST", "/api/v1/households/$householdId/documents", content, mediaType, headers = mapOf("X-Filename" to filename))
+    suspend fun upload(householdId: String, filename: String, mediaType: String, content: ByteArray): String = withContext(Dispatchers.IO) {
+        request("POST", "/api/v1/households/$householdId/documents", content, mediaType, headers = mapOf("X-Filename" to filename)).getString("id")
+    }
+
+    suspend fun analyze(householdId: String, documentId: String): JarvisAnalysis = withContext(Dispatchers.IO) {
+        val value = request(
+            "POST",
+            "/api/v1/households/$householdId/documents/$documentId/analysis",
+            readTimeoutMillis = 120_000,
+        )
+        val actions = value.getJSONArray("suggested_actions")
+        val deadlines = value.getJSONArray("deadlines")
+        val missing = value.getJSONArray("missing_information")
+        JarvisAnalysis(
+            value.getString("document_type"),
+            value.getString("summary"),
+            (0 until actions.length()).map(actions::getString),
+            (0 until deadlines.length()).map { deadlines.getJSONObject(it).getString("label") + ": " + deadlines.getJSONObject(it).getString("date") },
+            (0 until missing.length()).map(missing::getString),
+        )
     }
 
     private fun requestArray(method: String, path: String) = JSONArray(requestText(method, path))
 
-    private fun request(method: String, path: String, body: ByteArray? = null, contentType: String? = null, authenticated: Boolean = true, headers: Map<String, String> = emptyMap()): JSONObject = JSONObject(requestText(method, path, body, contentType, authenticated, headers))
+    private fun request(method: String, path: String, body: ByteArray? = null, contentType: String? = null, authenticated: Boolean = true, headers: Map<String, String> = emptyMap(), readTimeoutMillis: Int = 30_000): JSONObject = JSONObject(requestText(method, path, body, contentType, authenticated, headers, readTimeoutMillis = readTimeoutMillis))
 
-    private fun requestText(method: String, path: String, body: ByteArray? = null, contentType: String? = null, authenticated: Boolean = true, headers: Map<String, String> = emptyMap(), retry: Boolean = true): String {
+    private fun requestText(method: String, path: String, body: ByteArray? = null, contentType: String? = null, authenticated: Boolean = true, headers: Map<String, String> = emptyMap(), retry: Boolean = true, readTimeoutMillis: Int = 30_000): String {
         val connection = URL(BuildConfig.API_BASE_URL.trimEnd('/') + path).openConnection() as HttpURLConnection
         connection.requestMethod = method
         connection.connectTimeout = 10_000
-        connection.readTimeout = 30_000
+        connection.readTimeout = readTimeoutMillis
         connection.setRequestProperty("Accept", "application/json")
         if (authenticated) connection.setRequestProperty("Authorization", "Bearer ${store.load()?.access ?: error("Sessione assente")}")
         if (contentType != null) connection.setRequestProperty("Content-Type", contentType)
@@ -144,7 +169,7 @@ class JarvisClient(private val store: SecureSessionStore) {
         val text = (if (status in 200..299) connection.inputStream else connection.errorStream)?.bufferedReader()?.use { it.readText() }.orEmpty()
         if (status == 401 && authenticated && retry) {
             refreshSession()
-            return requestText(method, path, body, contentType, true, headers, false)
+            return requestText(method, path, body, contentType, true, headers, false, readTimeoutMillis)
         }
         if (status !in 200..299) error("Richiesta non riuscita (HTTP $status)")
         return text.ifBlank { "{}" }
