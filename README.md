@@ -92,6 +92,7 @@ cd android
 ./gradlew :app:assembleDebug
 ```
 
-The resulting private-test APK is `android/app/build/outputs/apk/debug/app-debug.apk`. Every
-successful update to `main` also publishes it as a GitHub Actions artifact. Tokens are encrypted
-with Android Keystore; cleartext network traffic and Android cloud backup are disabled.
+The resulting private-test APK is `android/app/build/outputs/apk/debug/app-debug.apk`. It supports
+login, quick task creation/completion and private document upload. Every successful update to
+`main` also publishes it as a GitHub Actions artifact. Tokens are encrypted with Android Keystore;
+cleartext network traffic and Android cloud backup are disabled.
