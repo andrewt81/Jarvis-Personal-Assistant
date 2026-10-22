@@ -212,6 +212,16 @@ immutabile con digest al momento della build.
 - stato `proposto` prima della conferma per le azioni rilevanti;
 - primo flusso verticale: documento importante -> riassunto -> scadenze -> checklist.
 
+### Nucleo operativo "Oggi"
+
+- [x] attività isolate per nucleo;
+- [x] priorità `low`, `normal`, `high`, `urgent`;
+- [x] scadenza opzionale e ordinamento per urgenza/data;
+- [x] assegnazione opzionale a persona e collegamento a documento dello stesso nucleo;
+- [x] completamento e storico delle attività concluse;
+- [x] permessi di modifica limitati a proprietari e adulti;
+- [ ] promemoria e notifiche Android conservative.
+
 ### Incremento 5 - Android MVP
 
 - accesso e sblocco biometrico;
@@ -302,6 +312,7 @@ della migrazione e lo smoke test contro l'ambiente reale.
 | 22/10/2026 | Aggiunti profili del nucleo, ruoli applicativi e test di isolamento multi-tenant. |
 | 22/10/2026 | Implementato il ciclo documenti privati PostgreSQL/RustFS con hash e autorizzazione. |
 | 22/10/2026 | Preparato il pacchetto Compose, verifica immagine, rilascio e rollback per Public-Jarvis. |
+| 22/10/2026 | Implementate le attività della schermata Oggi con priorità, scadenze e collegamenti. |
 
 ## Vincoli operativi del repository
 
