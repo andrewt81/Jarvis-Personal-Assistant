@@ -1,0 +1,58 @@
+# Jarvis Personal Assistant
+
+Backend and Android application for Jarvis Personal Assistant.
+
+The evolving product scope, decisions, progress log and MVP roadmap are maintained in
+[`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md).
+
+Development follows the `develop` -> `main` promotion model documented in
+[`CONTRIBUTING.md`](CONTRIBUTING.md). The `main` branch represents production.
+
+The repository is currently in its first backend milestone. The implemented surface is deliberately small:
+
+- process liveness;
+- dependency readiness for PostgreSQL and S3-compatible storage;
+- application version endpoint;
+- initial multi-user database migration;
+- container and deployment contracts compatible with the existing Jarvis infrastructure.
+
+## Local backend
+
+Create a virtual environment, install the project with development dependencies, then run:
+
+```text
+uvicorn jarvis.main:app --host 0.0.0.0 --port 8080
+```
+
+The production container installs the exact runtime versions recorded in
+`requirements.lock`. Dependency upgrades are deliberate changes and must be followed by the
+complete test suite.
+
+Production secrets must never be copied into this repository. The PostgreSQL password is read from a mounted file. S3 credentials are provided through the protected environment file already present on the server.
+
+## Tests
+
+```text
+pytest
+```
+
+## Database migrations
+
+Migrations are explicit and separate from normal application startup:
+
+```text
+alembic upgrade head
+```
+
+## Infrastructure contract
+
+The backend:
+
+- listens on `0.0.0.0:8080`;
+- does not publish host ports directly;
+- runs as a non-root user;
+- supports a read-only root filesystem and writable `/tmp` tmpfs;
+- writes structured logs to stdout/stderr;
+- handles `SIGTERM` through the ASGI server;
+- exposes `/health/live` and `/health/ready`;
+- stores structured data in PostgreSQL and persistent files in S3-compatible storage.

@@ -1,0 +1,17 @@
+.git
+.github
+.deps
+.venv
+.pytest_cache
+.ruff_cache
+.test-tmp*
+backend/tests
+docs
+secrets
+*.env
+*.pdf
+*.jpg
+*.jpeg
+*.png
+__pycache__
+*.py[cod]
