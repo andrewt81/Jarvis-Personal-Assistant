@@ -26,8 +26,12 @@ services:
       JARVIS_HTTP_PORT: 8080
       JARVIS_LOG_LEVEL: INFO
       JARVIS_POSTGRES_PASSWORD_FILE: /run/secrets/postgresql_password
+      JARVIS_AI_PROVIDER: "${JARVIS_AI_PROVIDER:-openai}"
+      JARVIS_AI_MODEL: "${JARVIS_AI_MODEL:-gpt-6-luna}"
+      JARVIS_AI_API_KEY_FILE: /run/secrets/openai_api_key
     volumes:
       - "${JARVIS_POSTGRES_PASSWORD_HOST_FILE:-/opt/jarvis/secrets/postgresql-password}:/run/secrets/postgresql_password:ro"
+      - "${JARVIS_AI_API_KEY_HOST_FILE:-/opt/jarvis/secrets/openai-api-key}:/run/secrets/openai_api_key:ro"
     networks:
       - proxy
       - jarvis-app

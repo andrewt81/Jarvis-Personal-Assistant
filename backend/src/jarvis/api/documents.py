@@ -10,7 +10,8 @@ from pydantic import BaseModel
 
 from jarvis.api.auth import current_user
 from jarvis.auth.models import AuthenticatedUser
-from jarvis.documents.models import Document
+from jarvis.documents.analysis import AnalysisUnavailableError
+from jarvis.documents.models import Document, DocumentAnalysis
 from jarvis.documents.service import (
     MAX_DOCUMENT_BYTES,
     DocumentNotFoundError,
@@ -33,6 +34,30 @@ class DocumentResponse(BaseModel):
     created_at: datetime
 
 
+class FactResponse(BaseModel):
+    label: str
+    value: str
+    source_text: str
+
+
+class DeadlineResponse(BaseModel):
+    date: str
+    label: str
+    source_text: str
+
+
+class DocumentAnalysisResponse(BaseModel):
+    id: UUID
+    document_id: UUID
+    document_type: str
+    summary: str
+    facts: list[FactResponse]
+    deadlines: list[DeadlineResponse]
+    suggested_actions: list[str]
+    missing_information: list[str]
+    created_at: datetime
+
+
 def _service(request: Request) -> DocumentService:
     return request.app.state.document_service
 
@@ -52,12 +77,47 @@ def _response(document: Document) -> DocumentResponse:
     )
 
 
+def _analysis_response(analysis: DocumentAnalysis) -> DocumentAnalysisResponse:
+    if analysis.created_at is None:
+        raise RuntimeError("Persisted analysis is missing its creation timestamp")
+    return DocumentAnalysisResponse(
+        id=analysis.id,
+        document_id=analysis.document_id,
+        document_type=analysis.document_type,
+        summary=analysis.summary,
+        facts=[
+            FactResponse(
+                label=value.label,
+                value=value.value,
+                source_text=value.source_text,
+            )
+            for value in analysis.facts
+        ],
+        deadlines=[
+            DeadlineResponse(
+                date=value.date,
+                label=value.label,
+                source_text=value.source_text,
+            )
+            for value in analysis.deadlines
+        ],
+        suggested_actions=list(analysis.suggested_actions),
+        missing_information=list(analysis.missing_information),
+        created_at=analysis.created_at,
+    )
+
+
 def _translate(error: Exception) -> HTTPException:
     if isinstance(error, (HouseholdNotFoundError, DocumentNotFoundError)):
         return HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Resource not found")
     if isinstance(error, HouseholdPermissionError):
         return HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions"
+        )
+    if isinstance(error, AnalysisUnavailableError):
+        return HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Document analysis is unavailable",
         )
     return HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(error))
 
@@ -101,6 +161,43 @@ async def upload_document(
     except (HouseholdNotFoundError, HouseholdPermissionError, InvalidDocumentError) as error:
         raise _translate(error) from error
     return _response(value)
+
+
+@router.post("/{document_id}/analysis", response_model=DocumentAnalysisResponse)
+async def analyze_document(
+    household_id: UUID,
+    document_id: UUID,
+    request: Request,
+    user: Annotated[AuthenticatedUser, Depends(current_user)],
+) -> DocumentAnalysisResponse:
+    try:
+        value = await _service(request).analyze(user.id, household_id, document_id)
+    except (
+        HouseholdNotFoundError,
+        HouseholdPermissionError,
+        DocumentNotFoundError,
+        AnalysisUnavailableError,
+    ) as error:
+        raise _translate(error) from error
+    return _analysis_response(value)
+
+
+@router.get("/{document_id}/analysis/latest", response_model=DocumentAnalysisResponse)
+async def latest_document_analysis(
+    household_id: UUID,
+    document_id: UUID,
+    request: Request,
+    user: Annotated[AuthenticatedUser, Depends(current_user)],
+) -> DocumentAnalysisResponse:
+    try:
+        value = await _service(request).latest_analysis(user.id, household_id, document_id)
+    except (
+        HouseholdNotFoundError,
+        DocumentNotFoundError,
+        AnalysisUnavailableError,
+    ) as error:
+        raise _translate(error) from error
+    return _analysis_response(value)
 
 
 @router.get("/{document_id}/content", response_class=Response)

@@ -6,7 +6,13 @@ from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 import pytest
-from jarvis.documents.models import Document
+from jarvis.documents.analysis import AnalysisResult
+from jarvis.documents.models import (
+    Document,
+    DocumentAnalysis,
+    ExtractedDeadline,
+    ExtractedFact,
+)
 from jarvis.documents.service import DocumentService, InvalidDocumentError
 from jarvis.households.models import Membership
 from jarvis.households.service import HouseholdNotFoundError, HouseholdPermissionError
@@ -62,6 +68,45 @@ class Storage:
         return self.values[key]
 
 
+class Analyses:
+    def __init__(self) -> None:
+        self.values: list[DocumentAnalysis] = []
+
+    async def create(self, analysis: DocumentAnalysis) -> DocumentAnalysis:
+        value = replace(analysis, created_at=datetime.now(UTC))
+        self.values.append(value)
+        return value
+
+    async def latest(self, household_id: UUID, document_id: UUID) -> DocumentAnalysis | None:
+        matches = [
+            value
+            for value in self.values
+            if value.household_id == household_id and value.document_id == document_id
+        ]
+        return matches[-1] if matches else None
+
+
+class Analyzer:
+    def __init__(self) -> None:
+        self.calls = 0
+
+    async def analyze(self, *, filename: str, media_type: str, content: bytes) -> AnalysisResult:
+        self.calls += 1
+        assert filename == "lettera.txt"
+        assert media_type == "text/plain"
+        assert content == b"Scadenza: 2026-11-30"
+        return AnalysisResult(
+            provider="test",
+            model="test-model",
+            document_type="comunicazione",
+            summary="Una comunicazione con una scadenza.",
+            facts=(ExtractedFact("scadenza", "2026-11-30", "Scadenza: 2026-11-30"),),
+            deadlines=(ExtractedDeadline("2026-11-30", "Rispondere", "Scadenza: 2026-11-30"),),
+            suggested_actions=("Preparare la risposta",),
+            missing_information=("Destinatario",),
+        )
+
+
 def test_upload_hashes_and_namespaces_original() -> None:
     user_id, household_id = uuid4(), uuid4()
     repository, storage = Documents(), Storage()
@@ -114,3 +159,36 @@ def test_other_household_is_hidden_and_invalid_types_are_rejected() -> None:
                 content=b"not allowed",
             )
         )
+
+
+def test_document_analysis_preserves_sources_and_requires_explicit_task_creation() -> None:
+    user_id, household_id = uuid4(), uuid4()
+    repository, storage, analyses = Documents(), Storage(), Analyses()
+    analyzer = Analyzer()
+    service = DocumentService(
+        repository,
+        Households(user_id, household_id),
+        storage,
+        analyses,
+        analyzer,
+    )
+    document = asyncio.run(
+        service.upload(
+            user_id,
+            household_id,
+            filename="lettera.txt",
+            media_type="text/plain",
+            content=b"Scadenza: 2026-11-30",
+        )
+    )
+
+    analysis = asyncio.run(service.analyze(user_id, household_id, document.id))
+    latest = asyncio.run(service.latest_analysis(user_id, household_id, document.id))
+    cached = asyncio.run(service.analyze(user_id, household_id, document.id))
+
+    assert latest == analysis
+    assert cached == analysis
+    assert analyzer.calls == 1
+    assert analysis.source_sha256 == document.sha256
+    assert analysis.facts[0].source_text == "Scadenza: 2026-11-30"
+    assert analysis.suggested_actions == ("Preparare la risposta",)

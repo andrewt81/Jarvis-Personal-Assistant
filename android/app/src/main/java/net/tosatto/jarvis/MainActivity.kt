@@ -93,6 +93,8 @@ private fun Today(client: JarvisClient, onLogout: () -> Unit) {
     var message by remember { mutableStateOf("Caricamento…") }
     var newTaskTitle by remember { mutableStateOf("") }
     var creatingTask by remember { mutableStateOf(false) }
+    var analysis by remember { mutableStateOf<JarvisAnalysis?>(null) }
+    var acceptingActions by remember { mutableStateOf(false) }
 
     fun refresh() = scope.launch {
         runCatching {
@@ -115,8 +117,12 @@ private fun Today(client: JarvisClient, onLogout: () -> Unit) {
                 } ?: ("documento" to 0L)
                 require(metadata.second in 1..(25L * 1024 * 1024)) { "Il documento supera il limite di 25 MiB" }
                 val bytes = context.contentResolver.openInputStream(uri)!!.use { it.readBytes() }
-                client.upload(household!!.id, metadata.first, context.contentResolver.getType(uri) ?: "application/pdf", bytes)
-            }.onSuccess { message = "Documento caricato" }
+                val documentId = client.upload(household!!.id, metadata.first, context.contentResolver.getType(uri) ?: "application/pdf", bytes)
+                client.analyze(household!!.id, documentId)
+            }.onSuccess {
+                analysis = it
+                message = "Documento analizzato: verifica sempre i dati proposti"
+            }
                 .onFailure { message = it.message ?: "Caricamento non riuscito" }
         }
     }
@@ -127,7 +133,7 @@ private fun Today(client: JarvisClient, onLogout: () -> Unit) {
             Button(onClick = onLogout) { Text("Esci") }
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(onClick = { picker.launch(arrayOf("application/pdf", "image/*", "text/plain")) }) { Text("Carica documento") }
+            Button(onClick = { picker.launch(arrayOf("application/pdf", "image/*", "text/plain")) }) { Text("Carica e analizza") }
             Button(onClick = { refresh() }) { Text("Aggiorna") }
         }
         Row(
@@ -159,6 +165,40 @@ private fun Today(client: JarvisClient, onLogout: () -> Unit) {
             ) { Text(if (creatingTask) "Aggiungo…" else "Aggiungi") }
         }
         if (message.isNotBlank()) Text(message, modifier = Modifier.padding(vertical = 16.dp))
+        analysis?.let { value ->
+            Card(Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
+                Column(Modifier.padding(16.dp)) {
+                    Text(value.documentType, style = MaterialTheme.typography.titleMedium)
+                    Text(value.summary, modifier = Modifier.padding(vertical = 8.dp))
+                    value.deadlines.forEach { Text("Scadenza: $it") }
+                    value.suggestedActions.forEach { Text("• $it") }
+                    if (value.missingInformation.isNotEmpty()) {
+                        Text("Da verificare: ${value.missingInformation.joinToString()}")
+                    }
+                    Button(
+                        enabled = value.suggestedActions.isNotEmpty() && !acceptingActions,
+                        onClick = {
+                            acceptingActions = true
+                            scope.launch {
+                                val remaining = value.suggestedActions.toMutableList()
+                                runCatching {
+                                    value.suggestedActions.forEach {
+                                        client.createTask(household!!.id, it)
+                                        remaining.remove(it)
+                                        analysis = value.copy(suggestedActions = remaining.toList())
+                                    }
+                                }.onSuccess {
+                                    analysis = null
+                                    message = "Azioni aggiunte a Oggi"
+                                }.onFailure { message = it.message ?: "Creazione non riuscita" }
+                                refresh()
+                                acceptingActions = false
+                            }
+                        },
+                    ) { Text(if (acceptingActions) "Aggiungo…" else "Aggiungi azioni a Oggi") }
+                }
+            }
+        }
         LazyColumn(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(8.dp),

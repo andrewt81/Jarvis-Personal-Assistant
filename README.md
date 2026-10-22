@@ -12,6 +12,7 @@ The repository contains the first end-to-end MVP release candidate:
 
 - multi-user authentication and household roles;
 - private document storage in PostgreSQL and S3-compatible RustFS;
+- structured document explanations, sourced facts, deadlines and user-confirmed actions;
 - the household “Today” task workflow;
 - a native Android client for login, tasks and document upload;
 - hardened container and deployment contracts compatible with the Jarvis infrastructure.
@@ -69,6 +70,13 @@ authenticated household document API. PostgreSQL stores metadata and SHA-256 has
 the bytes under a household-scoped key. Downloads are proxied by the backend after authorization,
 so the private RustFS endpoint is never exposed to Android clients.
 
+When AI document understanding is enabled, `POST
+/api/v1/households/{household_id}/documents/{document_id}/analysis` returns and persists a
+structured explanation. The provider is isolated behind an application interface; production
+starts with OpenAI Responses API and configurable `gpt-6-luna`. Requests use `store: false`, but
+the selected document is processed by that external provider. Suggestions become tasks only after
+the user confirms them in Android.
+
 ## Infrastructure contract
 
 The backend:
@@ -93,6 +101,6 @@ cd android
 ```
 
 The resulting private-test APK is `android/app/build/outputs/apk/debug/app-debug.apk`. It supports
-login, quick task creation/completion and private document upload. Every successful update to
+login, quick task creation/completion, private document analysis and action confirmation. Every successful update to
 `main` also publishes it as a GitHub Actions artifact. Tokens are encrypted with Android Keystore;
 cleartext network traffic and Android cloud backup are disabled.

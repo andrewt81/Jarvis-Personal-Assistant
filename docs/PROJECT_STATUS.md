@@ -149,7 +149,7 @@ immutabile con digest al momento della build.
 
 ### Verifiche locali
 
-- 19 test automatici superati e un test PostgreSQL d'integrazione disponibile su richiesta.
+- 21 test automatici superati e un test PostgreSQL d'integrazione disponibile su richiesta.
 - Controlli Ruff e formattazione superati.
 - Compilazione dei moduli Python superata.
 - SQL della migrazione generato offline correttamente per PostgreSQL.
@@ -161,9 +161,9 @@ immutabile con digest al momento della build.
   readiness risponde correttamente `503` senza esporre dettagli sensibili.
 - Autenticazione verificata con test unitari/API e con un ciclo completo su PostgreSQL 17.11
   temporaneo: migrazioni, creazione proprietario, login, refresh atomico e revoca.
-- Percorso MVP end-to-end verificato su PostgreSQL 17.11 e RustFS 1.0.1 reali in Docker:
-  readiness, login, nucleo, creazione e completamento attività, upload/download/cancellazione
-  documento, rotazione della sessione e logout.
+- Percorso MVP end-to-end verificato su PostgreSQL 17.11 e RustFS 1.0.1 reali in Docker,
+  includendo analisi documentale strutturata contro un simulatore API locale, tracciabilità della
+  fonte, cancellazione a cascata, attività, rotazione della sessione e logout.
 - Nessuna connessione o modifica è stata effettuata sulle VM di produzione.
 - Preparato il Compose di produzione aderente al contratto Jarvis/Edith, senza porte host.
 - Preparata la pubblicazione GHCR su aggiornamenti di `main`, con digest riportato nel riepilogo.
@@ -207,12 +207,12 @@ immutabile con digest al momento della build.
 
 ### Incremento 4 - comprensione e pratiche
 
-- pipeline inizialmente sincrona o attivata su richiesta, senza coda esterna;
-- riassunto semplice e dati estratti con evidenza della fonte;
-- separazione esplicita fra testo originale, interpretazione e suggerimento;
+- [x] pipeline sincrona attivata su richiesta, senza coda esterna;
+- [x] riassunto semplice e dati estratti con evidenza della fonte;
+- [x] separazione esplicita fra originale, fatti osservati e suggerimenti;
 - pratiche, checklist, attività, scadenze e appuntamenti collegati;
 - stato `proposto` prima della conferma per le azioni rilevanti;
-- primo flusso verticale: documento importante -> riassunto -> scadenze -> checklist.
+- [x] primo flusso verticale: documento -> riassunto -> scadenze -> azioni confermate in Oggi.
 
 ### Nucleo operativo "Oggi"
 
@@ -232,7 +232,7 @@ immutabile con digest al momento della build.
 - prossimi appuntamenti e scadenze;
 - chat testuale;
 - [x] acquisizione PDF/immagine/testo e upload;
-- dettaglio documento con riassunto, dati estratti e azioni proposte;
+- [x] dettaglio immediato con riassunto, scadenze, dati mancanti e azioni proposte;
 - schermata "Cosa devo fare?";
 - notifiche locali iniziali, con regole conservative.
 
@@ -289,17 +289,10 @@ Le tabelle saranno aggiunte per incrementi verticali, non tutte in anticipo.
 
 ## Prossimo passo consigliato
 
-Implementare l'incremento 2 con un flusso completo e testato:
-
-1. creazione del primo account e del nucleo;
-2. login e refresh sessione;
-3. endpoint per leggere e modificare i profili del nucleo;
-4. autorizzazione basata su appartenenza e ruolo;
-5. test di isolamento: un utente non deve poter accedere a dati di un altro nucleo.
-
-Prima del primo deployment saranno inoltre necessari il digest verificato dell'immagine base,
-la build dell'immagine applicativa, la convalida del Compose esistente, l'esecuzione esplicita
-della migrazione e lo smoke test contro l'ambiente reale.
+La v0.1 è una release candidate installabile. Il prossimo passo è la promozione controllata da
+`develop` a `main`, che richiede approvazione esplicita, seguita da pubblicazione GHCR, installazione
+per digest, migrazioni e smoke test sulle VM reali. I prerequisiti e le evidenze sono raccolti in
+`docs/releases/0.1.0-rc1.md`.
 
 ## Registro sintetico
 
@@ -320,6 +313,7 @@ della migrazione e lo smoke test contro l'ambiente reale.
 | 22/10/2026 | Superato il collaudo end-to-end dell'MVP su PostgreSQL e RustFS reali; corretta la tipizzazione SQL degli aggiornamenti attività. |
 | 22/10/2026 | Aggiunti audit persistente dell'autenticazione, limiti ai tentativi di accesso e gestione sicura degli header del proxy. |
 | 22/10/2026 | Completato il flusso Android Oggi con creazione rapida delle attività; APK ricompilato e firma v2 verificata. |
+| 22/10/2026 | Completato il flusso documento → spiegazione → azioni confermate, con output strutturato e fonti. |
 
 ## Vincoli operativi del repository
 

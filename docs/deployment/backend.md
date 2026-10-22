@@ -11,7 +11,10 @@ same contract and can be compared with that host template before it is installed
 3. Copy `deploy/.env.example` to `/opt/jarvis/deploy/release.env`, set the immutable image digest,
    and protect the file with mode `0600`.
 4. Set `JARVIS_SECRETS_GID` to the numeric GID returned for the existing `jarvis-secrets` group.
-5. Confirm that the external Docker networks `proxy` and `jarvis-app` still exist.
+5. Create `/opt/jarvis/secrets/openai-api-key`, owned by the deployment administrator and readable
+   by `jarvis-secrets` only; never place the key in an env file or command line.
+6. Confirm API access to the configured model and set an account-side spending limit.
+7. Confirm that the external Docker networks `proxy` and `jarvis-app` still exist.
 
 ## Release
 
@@ -53,4 +56,10 @@ unverified snapshot and never performs an automatic schema downgrade.
 - PostgreSQL password: mounted at `/run/secrets/postgresql_password`.
 - PostgreSQL non-secret configuration: existing protected env file on the host.
 - RustFS credentials and configuration: existing protected env file on the host.
+- OpenAI API key: mounted from `/opt/jarvis/secrets/openai-api-key` in read-only mode.
 - Never print resolved settings, connection strings, tokens or document content.
+
+The Android action “Carica e analizza” explicitly sends the selected original to the configured AI
+provider. The request asks the provider not to store the response (`store: false`); administrators
+must still review provider terms, retention controls, regional processing and account limits before
+enabling real personal documents.
