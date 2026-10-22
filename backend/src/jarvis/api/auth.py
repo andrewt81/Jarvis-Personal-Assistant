@@ -67,6 +67,17 @@ def _token_response(pair: TokenPair) -> TokenResponse:
     )
 
 
+async def current_user(
+    request: Request,
+    authorization: Annotated[str | None, Header()] = None,
+) -> AuthenticatedUser:
+    token = _bearer_token(authorization)
+    try:
+        return await _service(request).authenticate(token)
+    except InvalidSessionError as error:
+        raise _unauthorized() from error
+
+
 @router.post("/auth/login", response_model=TokenResponse)
 async def login(payload: LoginRequest, request: Request) -> TokenResponse:
     try:
@@ -100,9 +111,5 @@ async def me(
     request: Request,
     authorization: Annotated[str | None, Header()] = None,
 ) -> UserResponse:
-    token = _bearer_token(authorization)
-    try:
-        user: AuthenticatedUser = await _service(request).authenticate(token)
-    except InvalidSessionError as error:
-        raise _unauthorized() from error
+    user = await current_user(request, authorization)
     return UserResponse(id=user.id, email=user.email)

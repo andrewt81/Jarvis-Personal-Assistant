@@ -56,6 +56,11 @@ The password is requested without echo and never accepted as a command-line argu
 registration remains disabled. Authentication endpoints are available under `/api/v1/auth`, and
 `GET /api/v1/me` validates the current bearer session.
 
+Authenticated users can list their households with `GET /api/v1/households`. Household members
+can read profiles under `GET /api/v1/households/{household_id}/people`; owners and adults can
+create or update them. Every lookup verifies membership server-side and hides resources belonging
+to another household.
+
 ## Infrastructure contract
 
 The backend:

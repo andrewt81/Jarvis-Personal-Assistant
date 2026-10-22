@@ -11,12 +11,15 @@ from fastapi import FastAPI, Request, Response
 from jarvis.api.auth import router as auth_router
 from jarvis.api.health import HealthChecker
 from jarvis.api.health import router as health_router
+from jarvis.api.households import router as households_router
 from jarvis.api.router import router as api_router
 from jarvis.auth.service import AuthService
 from jarvis.core.config import Settings
 from jarvis.core.logging import configure_logging
+from jarvis.households.service import HouseholdService
 from jarvis.infrastructure.auth_repository import PostgreSQLAuthRepository
 from jarvis.infrastructure.database import PostgreSQLHealthChecker
+from jarvis.infrastructure.household_repository import PostgreSQLHouseholdRepository
 from jarvis.infrastructure.object_storage import S3HealthChecker
 
 logger = logging.getLogger(__name__)
@@ -29,6 +32,7 @@ def create_app(
     postgresql_health: HealthChecker | None = None,
     s3_health: HealthChecker | None = None,
     auth_service: AuthService | None = None,
+    household_service: HouseholdService | None = None,
 ) -> FastAPI:
     application_settings = settings or Settings.from_environment()
     configure_logging(application_settings.log_level)
@@ -49,6 +53,9 @@ def create_app(
     application.state.s3_health = s3_health or S3HealthChecker(application_settings)
     application.state.auth_service = auth_service or AuthService(
         PostgreSQLAuthRepository(application_settings)
+    )
+    application.state.household_service = household_service or HouseholdService(
+        PostgreSQLHouseholdRepository(application_settings)
     )
 
     @application.middleware("http")
@@ -79,6 +86,7 @@ def create_app(
     application.include_router(health_router)
     application.include_router(api_router)
     application.include_router(auth_router)
+    application.include_router(households_router)
     return application
 
 
