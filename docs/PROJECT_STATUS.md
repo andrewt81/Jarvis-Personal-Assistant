@@ -18,8 +18,8 @@ Su jarvis sono stati verificati tramite output dell'utente Debian 13.7, circa
 container applicativo risulta avviato. I file predisposti sotto /opt/jarvis puntano
 a Edith 10.10.30.20:5432 (TLS require) e 10.10.30.20:9000 (S3 path-style).
 Tailscale e attivo su jarvis, IP 100.79.96.2; HTTP verso Open WebUI su Ultron
-100.127.56.71:3000 verificato dall'host e da Traefik. Autenticazione API e
-accesso applicativo ai dati non ancora verificati.
+100.127.56.71:3000 verificato dall'host e da Traefik. Autenticazione API Open WebUI
+ancora da verificare; accesso autenticato PostgreSQL e HEAD del bucket verificati.
 
 Il codice locale del ramo feature/ultron-document-analysis aggiunge il provider
 Open WebUI, senza aggiornare il profilo remoto o cambiare i contratti Android.
@@ -33,8 +33,10 @@ Autenticazione PostgreSQL e TLS effettivo confermati, privilegi sullo schema
 disponibili; HEAD del bucket S3 riuscito. Database senza tabelle applicative e
 senza tabella Alembic. La suite completa Linux sul candidato ha poi restituito
 82 passed, 1 skipped e CANDIDATE_CHECKS=PASS; lint, formattazione e compilazione
-superati. Lettura/scrittura oggetti, migrazioni e inizializzazione dell'account
-applicativo ancora da eseguire.
+superati. Successivamente l'utente ha applicato le sei migrazioni dall'immagine
+verificata su Jarvis al database jarvis su Edith: alembic current conferma
+20261022_0006 (head). Lettura/scrittura oggetti e inizializzazione dell'account
+applicativo ancora da eseguire; backend non ancora avviato.
 
 Configurazione, prove, limiti di conservazione delle copie su Open WebUI, gestione
 dei job lunghi e ripristino sono in [ULTRON_INTEGRATION.md](ULTRON_INTEGRATION.md).

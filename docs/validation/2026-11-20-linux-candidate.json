@@ -25,7 +25,16 @@
     "s3_head_bucket": true,
     "object_read_write_permissions": "not_tested"
   },
-  "migrations_applied": false,
+  "migrations_applied": true,
+  "migration_verification": {
+    "runner_host": "jarvis",
+    "database_host": "edith",
+    "database": "jarvis",
+    "current_revision": "20261022_0006",
+    "at_head": true,
+    "transactional_ddl": true
+  },
+  "first_owner_created": false,
   "application_started": false,
   "live_llm_analysis_verified": false
 }

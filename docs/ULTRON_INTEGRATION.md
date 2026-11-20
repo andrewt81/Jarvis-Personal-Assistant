@@ -160,6 +160,14 @@ ancora scegliere openai in modo esplicito con il relativo segreto.
 
 ### Riscontri dal container su Jarvis
 
+Stato successivo confermato dall'output dell'utente: dopo il superamento della suite,
+eseguiti `alembic upgrade head` e `alembic current` dall'immagine candidata su Jarvis
+con le sole credenziali PostgreSQL dell'applicazione. Applicate le sei revisioni
+20261022_0001 fino a 20261022_0006, DDL transazionale, revisione finale
+**20261022_0006 (head)** sul database jarvis di Edith. Primo proprietario applicativo
+non ancora creato e backend non avviato. Le prove precedenti riportate sotto
+rappresentano lo stato prima delle migrazioni e restano come evidenza storica.
+
 Output dell'utente sul commit 911688036092399e77f1d1ff1577ee17bcae3de4:
 build Linux del Dockerfile backend completata e immagine locale
 jarvis-backend:preflight-9116880 creata. Il comando jarvis.preflight, eseguito come
