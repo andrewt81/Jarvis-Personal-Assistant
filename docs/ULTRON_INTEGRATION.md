@@ -10,11 +10,20 @@ o collaudo applicativo remoto effettuato. Verifica HTTP di rete riuscita come ri
 | `ultron` | Inferenza: Ollama, Open WebUI e Docling; i tre container risultano healthy nell'output fornito. |
 | Profilo `jarvis` | Profilo Open WebUI su Ultron. L'handoff attesta ragionamento booleano true, contesto 65536 e strumenti PDF/calcolo/pianificazione. Non è stato riconfermato via API in questa sessione. |
 | Host `jarvis` | Applicazione: Debian 13.7, circa 8 GiB RAM, solo Traefik attivo e healthy, rete Docker proxy, directory /opt/jarvis già presente. Il suo contenuto non è stato ancora acquisito. |
-| `edith` | Storage S3 di un'altra applicazione. Escluso dalla presente integrazione. Non riutilizzare account, database, bucket o configurazioni precedenti senza nuova verifica del loro scopo. |
+| `edith` | PostgreSQL 17 e RustFS per i dati dell'applicazione, come previsto dalla documentazione originale e riconfermato dall'utente. Database jarvis, ruolo jarvis_app e bucket jarvis-documents-prod dedicati, da verificare. |
 
-La configurazione PostgreSQL/S3 della release candidata del 22 ottobre è storica.
-Non dimostra che esistano servizi dedicati all'applicazione attuale. La sede dei dati
-applicativi è ancora da verificare: questo incremento non installa database o storage.
+L'utente ha confermato di attenersi all'architettura originale: applicazione su
+Jarvis, PostgreSQL e documenti S3 su Edith, inferenza su Ultron. La precedente
+esclusione di Edith in questo documento era un'interpretazione errata ed e ritirata.
+I file predisposti su Jarvis puntano a 10.10.30.20:5432, database jarvis, ruolo
+jarvis_app, SSL require, e http://10.10.30.20:9000, bucket jarvis-documents-prod,
+regione us-east-1, path-style true. Questo conferma la configurazione prevista;
+esistenza, contenuto e permessi delle risorse non sono ancora verificati.
+Non sono previsti spostamenti dei dati, nuovi database o nuovi bucket in questo
+incremento. Non toccare risorse appartenenti ad altre applicazioni su Edith.
+Il traffico applicazione-inferenza Jarvis-Ultron usa Tailscale; Jarvis-Edith mantiene
+gli endpoint della rete interna gia predisposti, da collaudare. Ultron non necessita
+di accesso diretto a database o bucket per il flusso dell'adattatore.
 
 ## Implementazione
 
@@ -28,8 +37,9 @@ l'autenticazione API o il funzionamento del futuro container backend.
 
 Sono presenti config/postgresql.env, secrets/postgresql-password, secrets/rustfs.env,
 deploy/backend.env.template e deploy/compose.backend.template.yaml sotto /opt/jarvis.
-Sono stati acquisiti soltanto i nomi delle variabili e il bucket dichiarato
-jarvis-documents-prod; endpoint effettivi, proprieta e permessi restano da verificare.
+Sono stati acquisiti i nomi delle variabili e i parametri non segreti: endpoint
+PostgreSQL/S3 su Edith, database jarvis e bucket jarvis-documents-prod. Proprieta,
+autenticazione e permessi restano da verificare.
 Il codice supporta i nomi presenti nei template senza richiedere la riscrittura dei
 file sul server:
 
@@ -90,11 +100,12 @@ Gli esempi contengono soltanto percorsi, mai valori di chiavi.
 | Variabile | Valore candidato |
 |---|---|
 | JARVIS_AI_PROVIDER | openwebui |
-| JARVIS_OPENWEBUI_BASE_URL | http://100.127.56.71:3000, endpoint storico da provare da jarvis |
+| JARVIS_OPENWEBUI_BASE_URL | http://100.127.56.71:3000, HTTP verificato da Jarvis e Traefik; autenticazione API da provare |
 | JARVIS_OPENWEBUI_MODEL | jarvis |
 | JARVIS_OPENWEBUI_TIMEOUT_SECONDS | 3600, timeout complessivo tra 1 e 7200 secondi |
 | JARVIS_AI_API_KEY_HOST_FILE | /opt/jarvis/secrets/openwebui-api-key, da predisporre |
-| JARVIS_POSTGRES_ENV_FILE / JARVIS_S3_ENV_FILE | File della sola applicazione, da verificare |
+| JARVIS_POSTGRES_ENV_FILE | /opt/jarvis/config/postgresql.env, parametri non segreti verificati |
+| JARVIS_S3_ENV_FILE | /opt/jarvis/secrets/rustfs.env, segreti gia predisposti e non letti nella chat |
 
 Nel Compose il segreto selezionato è montato in /run/secrets/ai_api_key, usato dal
 provider esplicitamente scelto. Il percorso host diventa obbligatorio. Il provider di
@@ -130,7 +141,10 @@ ancora scegliere openai in modo esplicito con il relativo segreto.
 1. Verificare il contenuto non sensibile di /opt/jarvis e preservare configurazioni esistenti.
 2. HTTP da jarvis e Traefik a Ultron verificato; resta la prova dal container applicativo.
    Non pubblicare ulteriori porte di Ollama o Docling e non aprire endpoint AI su Internet.
-3. Individuare PostgreSQL e deposito originali dedicati all'applicazione, esclusa Edith.
+3. Verificare su Edith database jarvis e bucket jarvis-documents-prod usando le sole
+   credenziali dedicate gia predisposte. Controlli iniziali di sola lettura: identita
+   del database, TLS effettivo, privilegi del ruolo e HEAD del bucket; niente migrazioni,
+   scritture di oggetti o modifiche a ruoli prima del riscontro sullo stato reale.
 4. Predisporre l'identità tecnica e provarne il rifiuto di accesso a documenti estranei.
 5. Verificare lettura del profilo e strumenti autorizzati senza modifiche remote.
 6. Analizzare un piccolo PDF sintetico tramite API applicativa: confrontare hash originale,

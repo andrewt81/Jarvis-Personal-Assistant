@@ -6,14 +6,20 @@ Ultimo aggiornamento: 20 novembre 2026.
 
 L'host **jarvis** ospitera l'applicazione; l'host **ultron** esegue LLM, Ollama,
 Open WebUI e Docling. `jarvis` e anche il nome del profilo Open WebUI su Ultron.
-Edith e storage S3 di un'altra applicazione ed e escluso da questo incremento.
-I riferimenti infrastrutturali del 22 ottobre riportati sotto sono storici: non
-autorizzano il riuso di database, bucket o credenziali su Edith.
+L'architettura dati del 22 ottobre resta confermata: PostgreSQL 17 e RustFS su
+**edith**, con database jarvis, utente jarvis_app e bucket jarvis-documents-prod
+dedicati all'applicazione. Nessuna migrazione dei dati sull'host jarvis e prevista.
+La precedente annotazione che escludeva Edith era un'interpretazione errata ed e
+sostituita da questa conferma dell'utente. Esistenza e permessi delle risorse vanno
+verificati prima del primo avvio; non si usano risorse di altre applicazioni.
 
 Su jarvis sono stati verificati tramite output dell'utente Debian 13.7, circa
 8 GiB RAM, Traefik healthy sulla rete proxy e la presenza di /opt/jarvis. Nessun
-container applicativo risulta avviato. Il contenuto della directory e la sede
-effettiva dei dati dell'applicazione restano da verificare.
+container applicativo risulta avviato. I file predisposti sotto /opt/jarvis puntano
+a Edith 10.10.30.20:5432 (TLS require) e 10.10.30.20:9000 (S3 path-style).
+Tailscale e attivo su jarvis, IP 100.79.96.2; HTTP verso Open WebUI su Ultron
+100.127.56.71:3000 verificato dall'host e da Traefik. Autenticazione API e
+accesso applicativo ai dati non ancora verificati.
 
 Il codice locale del ramo feature/ultron-document-analysis aggiunge il provider
 Open WebUI, senza aggiornare il profilo remoto o cambiare i contratti Android.
