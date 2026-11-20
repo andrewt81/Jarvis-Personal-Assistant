@@ -160,6 +160,17 @@ ancora scegliere openai in modo esplicito con il relativo segreto.
 
 ### Riscontri dal container su Jarvis
 
+Smoke autenticato confermato dall'output dell'utente: tutti i controlli true e
+ok=true per rifiuto anonimo, login, identita profilo, nucleo owner, persona collegata,
+logout e session_revoked. Nessun identificativo personale o segreto nel report.
+L'estensione `scripts/smoke_auth.py --documents` verifica ora un piccolo TXT sintetico
+con marcatore casuale: upload, metadati/hash, recupero dei byte originali, rifiuto
+anonimo, nucleo inesistente e documento mancante, analisi disabilitata. Rimuove solo
+il nuovo ID restituito dall'upload, mai un ID preesistente, e solo dopo aver verificato
+nome, nucleo, dimensione, SHA e riletto i byte sintetici. Se l'identita non coincide,
+non cancella il documento. L'esito documentale resta da acquisire. Non misura
+isolamento fra due utenti reali o cancellazione fisica di eventuali versioni S3.
+
 Stato attuale: primo proprietario creato tramite CLI interattiva (identificativo
 personale omesso dal repository). Container interno jarvis-backend-pilot avviato
 con la stessa immagine verificata, rete proxy, traefik.enable=false, nessuna porta

@@ -43,6 +43,16 @@
     "object_storage": "available"
   },
   "production_release": false,
-  "authenticated_login_verified": false,
+  "authenticated_login_verified": true,
+  "auth_smoke": {
+    "anonymous_blocked": true,
+    "linked_person_verified": true,
+    "login": true,
+    "logout": true,
+    "ok": true,
+    "owner_household_verified": true,
+    "profile_identity_verified": true,
+    "session_revoked": true
+  },
   "live_llm_analysis_verified": false
 }

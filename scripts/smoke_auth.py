@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import argparse
 import getpass
+import hashlib
 import json
 from urllib.error import HTTPError
 from urllib.request import HTTPRedirectHandler, ProxyHandler, Request, build_opener
-from uuid import UUID
+from uuid import UUID, uuid4
 
 
 class SmokeFailure(Exception):
@@ -18,15 +20,16 @@ class _NoRedirect(HTTPRedirectHandler):
         raise SmokeFailure("redirect_refused")
 
 
-def _call(method: str, route: str, payload=None, token: str = ""):
+def _request(method: str, route: str, data: bytes | None = None, token: str = "", extra=None):
     headers = {"Content-Type": "application/json"}
+    headers.update(extra or {})
     if token:
         headers["Authorization"] = "Bearer " + token
     request = Request(  # noqa: S310 - fixed loopback service within the pilot container
         "http://127.0.0.1:8080" + route,
         method=method,
         headers=headers,
-        data=json.dumps(payload).encode() if payload is not None else None,
+        data=data,
     )
     opener = build_opener(ProxyHandler({}), _NoRedirect())
     try:
@@ -34,12 +37,19 @@ def _call(method: str, route: str, payload=None, token: str = ""):
             body = response.read(512 * 1024 + 1)
             if len(body) > 512 * 1024:
                 raise SmokeFailure("response_too_large")
-            return response.status, json.loads(body) if body else None
+            return response.status, body
     except HTTPError as error:
         # Error bodies are deliberately ignored, including potentially private details.
         status = error.code
         error.close()
-        return status, None
+        return status, b""
+
+
+def _call(method: str, route: str, payload=None, token: str = ""):
+    status, body = _request(
+        method, route, json.dumps(payload).encode() if payload is not None else None, token
+    )
+    return status, json.loads(body) if body else None
 
 
 def _require(condition: bool, phase: str) -> None:
@@ -47,7 +57,66 @@ def _require(condition: bool, phase: str) -> None:
         raise SmokeFailure(phase)
 
 
-def check(email: str, password: str) -> dict[str, object]:
+def _documents(household_id: str, token: str) -> dict[str, bool]:
+    route = f"/api/v1/households/{household_id}/documents"
+    status, previous = _call("GET", route, token=token)
+    _require(status == 200 and isinstance(previous, list), "document_list_failed")
+    existing = {value["id"] for value in previous}
+    marker = uuid4().hex
+    filename = "jarvis-synthetic-smoke-" + marker + ".txt"
+    content = ("Jarvis synthetic storage smoke test. Marker: " + marker).encode()
+    digest = hashlib.sha256(content).hexdigest()
+    status, raw = _request(
+        "POST",
+        route,
+        content,
+        token,
+        {"Content-Type": "text/plain", "X-Filename": filename},
+    )
+    _require(status == 201, "synthetic_upload_failed")
+    document = json.loads(raw)
+    document_id = str(UUID(document["id"]))
+    _require(
+        document_id not in existing
+        and document.get("household_id") == household_id
+        and document.get("original_filename") == filename
+        and document.get("sha256") == digest
+        and document.get("size_bytes") == len(content),
+        "synthetic_upload_identity_mismatch",
+    )
+    own_route = route + "/" + document_id
+    result = {"document_uploaded": True}
+    try:
+        status, original = _request("GET", own_route + "/content", token=token)
+        _require(status == 200 and original == content, "synthetic_original_mismatch")
+        result["original_content_and_hash_verified"] = True
+        status, _ = _request("GET", own_route + "/content")
+        _require(status == 401, "anonymous_document_access_not_rejected")
+        result["anonymous_document_blocked"] = True
+        status, _ = _request(
+            "GET", f"/api/v1/households/{uuid4()}/documents/{document_id}/content", token=token
+        )
+        _require(status == 404, "wrong_household_not_hidden")
+        result["wrong_household_hidden"] = True
+        status, _ = _request("GET", route + f"/{uuid4()}/content", token=token)
+        _require(status == 404, "missing_document_not_hidden")
+        result["missing_document_hidden"] = True
+        status, _ = _call("POST", own_route + "/analysis", token=token)
+        _require(status == 503, "analysis_not_disabled")
+        result["analysis_disabled"] = True
+    finally:
+        # Delete only the new ID from this run, after rereading its exact synthetic bytes.
+        status, original = _request("GET", own_route + "/content", token=token)
+        _require(status == 200 and original == content, "synthetic_cleanup_identity_not_verified")
+        status, _ = _call("DELETE", own_route, token=token)
+        _require(status == 204, "synthetic_cleanup_failed")
+    status, _ = _request("GET", own_route + "/content", token=token)
+    _require(status == 404, "synthetic_document_still_visible")
+    result["synthetic_document_removed"] = True
+    return result
+
+
+def check(email: str, password: str, *, documents: bool = False) -> dict[str, object]:
     result: dict[str, object] = {}
     status, _ = _call("GET", "/api/v1/me")
     _require(status == 401, "anonymous_access_not_rejected")
@@ -79,6 +148,8 @@ def check(email: str, password: str) -> dict[str, object]:
         )
         result["owner_household_verified"] = True
         result["linked_person_verified"] = True
+        if documents:
+            result.update(_documents(household_id, token))
     finally:
         status, _ = _call("POST", "/api/v1/auth/logout", token=token)
         _require(status == 204, "logout_failed")
@@ -91,10 +162,13 @@ def check(email: str, password: str) -> dict[str, object]:
 
 
 def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--documents", action="store_true")
+    arguments = parser.parse_args()
     try:
         email = input("Email applicazione Jarvis: ").strip()
         password = getpass.getpass("Password applicazione Jarvis: ")
-        result = check(email, password)
+        result = check(email, password, documents=arguments.documents)
     except SmokeFailure as error:
         # Only fixed internal phase identifiers are printed; never server bodies.
         print(json.dumps({"ok": False, "error": str(error)}))

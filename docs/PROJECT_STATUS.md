@@ -41,8 +41,10 @@ account e pilota interno predisposti come descritto sotto.
 Primo proprietario creato tramite CLI interattiva; nessuna credenziale o identita
 personale viene registrata qui. Container jarvis-backend-pilot avviato sulla rete
 proxy con traefik.enable=false, nessuna porta host, AI disabled. L'endpoint interno
-/health/ready restituisce ready con PostgreSQL e object_storage available. Login,
-lettura dei documenti, operazioni S3 e analisi AI live restano da collaudare.
+/health/ready restituisce ready con PostgreSQL e object_storage available. Smoke
+autenticato riuscito: rifiuto anonimo, login, identita, nucleo owner e persona
+collegata, logout e revoca confermati. Operazioni documentali/S3 e analisi AI live
+restano da collaudare.
 
 Configurazione, prove, limiti di conservazione delle copie su Open WebUI, gestione
 dei job lunghi e ripristino sono in [ULTRON_INTEGRATION.md](ULTRON_INTEGRATION.md).
