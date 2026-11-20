@@ -158,6 +158,29 @@ ancora scegliere openai in modo esplicito con il relativo segreto.
 
 ## Verifiche locali del 20 novembre
 
+### Riscontri dal container su Jarvis
+
+Output dell'utente sul commit 911688036092399e77f1d1ff1577ee17bcae3de4:
+build Linux del Dockerfile backend completata e immagine locale
+jarvis-backend:preflight-9116880 creata. Il comando jarvis.preflight, eseguito come
+utente del container sulla rete proxy con il solo segreto PostgreSQL montato in
+lettura e i due env file esistenti, ha restituito ok=true. Identita database/ruolo
+confermata, TLS attivo, USAGE e CREATE su public disponibili, migrazioni assenti.
+HEAD sul bucket S3 riuscito; lettura/scrittura di oggetti non provate. Nessuna
+migrazione, creazione del proprietario applicativo o avvio del backend effettuati.
+
+La suite completa puo ora essere eseguita nell'immagine Linux tramite
+scripts/validate_image.py --commit SHA, in un container temporaneo senza env file,
+segreti, porte o volumi host. Lo script scarica l'archivio GitHub del commit indicato,
+verifica che tutti i file Python installati dell'applicazione coincidano con esso,
+crea un virtualenv temporaneo con le dipendenze runtime dell'immagine e installa
+pytest 8.4.2, httpx 0.28.1 e Ruff 0.17.1. Esegue lint, formattazione, compilazione e
+pytest. Scaricamenti e risultati risiedono soltanto nel filesystem temporaneo del
+container. Il controllo non fornisce credenziali di produzione ai test e non esegue
+migrazioni. Il risultato completo resta da acquisire; non dedurlo dal preflight.
+
+### Cronologia delle verifiche locali precedenti
+
 - Verifica su Edith tramite output dell'utente: database jarvis di proprieta di
   jarvis_app; ruolo con LOGIN e senza SUPERUSER, CREATEDB o CREATEROLE. Nessuna
   tabella applicativa elencata e public.alembic_version assente. Nessuna migrazione
