@@ -34,6 +34,12 @@ def main() -> int:
 
     with tempfile.TemporaryDirectory(prefix="jarvis-quality-") as temporary:
         directory = Path(temporary)
+        if os.statvfs(directory).f_flag & os.ST_NOEXEC:
+            raise RuntimeError(
+                "Temporary test filesystem is noexec; run the disposable test container "
+                "with --tmpfs /tmp:rw,exec,nosuid,nodev,size=512m"
+            )
+        print("TEMP_EXEC=PASS", flush=True)
         url = (
             "https://codeload.github.com/andrewt81/Jarvis-Personal-Assistant/tar.gz/"
             + arguments.commit

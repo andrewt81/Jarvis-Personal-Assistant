@@ -179,6 +179,15 @@ pytest. Scaricamenti e risultati risiedono soltanto nel filesystem temporaneo de
 container. Il controllo non fornisce credenziali di produzione ai test e non esegue
 migrazioni. Il risultato completo resta da acquisire; non dedurlo dal preflight.
 
+Primo tentativo del runner: SOURCE_MATCH=PASS, poi PermissionError durante l'avvio
+del Python copiato nel virtualenv sotto /tmp, prima di lint o test. Il comando
+del container temporaneo non specificava exec sul tmpfs. Per questo solo container
+di validazione, senza credenziali o volumi host, usare esplicitamente
+`--tmpfs /tmp:rw,exec,nosuid,nodev,size=512m`. Il runner ora controlla ST_NOEXEC
+prima del download e stampa TEMP_EXEC=PASS soltanto se il mount consente esecuzione.
+La correzione del comando resta da provare sul server; la suite non e ancora passata.
+Il tmpfs del backend applicativo e quello del preflight dati non vengono modificati.
+
 ### Cronologia delle verifiche locali precedenti
 
 - Verifica su Edith tramite output dell'utente: database jarvis di proprieta di
