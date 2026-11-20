@@ -73,9 +73,13 @@ so the private RustFS endpoint is never exposed to Android clients.
 When AI document understanding is enabled, `POST
 /api/v1/households/{household_id}/documents/{document_id}/analysis` returns and persists a
 structured explanation. The provider is isolated behind an application interface; production
-starts with OpenAI Responses API and configurable `gpt-6-luna`. Requests use `store: false`, but
-the selected document is processed by that external provider. Suggestions become tasks only after
-the user confirms them in Android.
+originally used OpenAI Responses API and configurable `gpt-6-luna`. That explicitly selected
+provider uses `store: false` and processes the document externally. The new `openwebui`
+adapter targets the existing `jarvis` profile on Ultron over Tailscale, retaining native
+document tools and reasoning. It has no automatic cloud fallback. See
+[`docs/ULTRON_INTEGRATION.md`](docs/ULTRON_INTEGRATION.md) for configuration, retention
+limitations and the live acceptance gate. Suggestions become tasks only after the user
+confirms them in Android.
 
 ## Infrastructure contract
 

@@ -1,6 +1,33 @@
 # Jarvis Personal Assistant - stato, decisioni e roadmap
 
-Ultimo aggiornamento: 22 ottobre 2026.
+Ultimo aggiornamento: 20 novembre 2026.
+
+## Ripresa del 20 novembre: applicazione e inferenza separate
+
+L'host **jarvis** ospitera l'applicazione; l'host **ultron** esegue LLM, Ollama,
+Open WebUI e Docling. `jarvis` e anche il nome del profilo Open WebUI su Ultron.
+Edith e storage S3 di un'altra applicazione ed e escluso da questo incremento.
+I riferimenti infrastrutturali del 22 ottobre riportati sotto sono storici: non
+autorizzano il riuso di database, bucket o credenziali su Edith.
+
+Su jarvis sono stati verificati tramite output dell'utente Debian 13.7, circa
+8 GiB RAM, Traefik healthy sulla rete proxy e la presenza di /opt/jarvis. Nessun
+container applicativo risulta avviato. Il contenuto della directory e la sede
+effettiva dei dati dell'applicazione restano da verificare.
+
+Il codice locale del ramo feature/ultron-document-analysis aggiunge il provider
+Open WebUI, senza aggiornare il profilo remoto o cambiare i contratti Android.
+Endpoint Tailscale esplicito, allegato singolo, nuova chat per analisi, native
+tool calling, ragionamento booleano attivo e risultato JSON finale validato.
+Nessun fallback cloud. La configurazione di rilascio e candidata e non applicata.
+
+Configurazione, prove, limiti di conservazione delle copie su Open WebUI, gestione
+dei job lunghi e ripristino sono in [ULTRON_INTEGRATION.md](ULTRON_INTEGRATION.md).
+La baseline locale di partenza e 02edf87 sul ramo develop, confrontata con la
+testa remota dello stesso ramo prima della pubblicazione: coincidono. L'incremento
+e destinato a una PR in bozza verso develop. Nessun merge o deployment effettuato.
+
+## Stato storico al 22 ottobre 2026
 
 Questo documento raccoglie in un solo punto gli avanzamenti, le idee, le decisioni e i
 prossimi sviluppi. Deve essere aggiornato a ogni modifica funzionale o architetturale

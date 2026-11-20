@@ -41,6 +41,10 @@ class Settings:
     ai_model: str = "gpt-6-luna"
     ai_api_base_url: str = "https://api.openai.com/v1"
     ai_api_key_file: Path = field(default=Path("/run/secrets/openai_api_key"), repr=False)
+    openwebui_base_url: str = ""
+    openwebui_model: str = "jarvis"
+    openwebui_api_key_file: Path = field(default=Path("/run/secrets/openwebui_api_key"), repr=False)
+    openwebui_timeout_seconds: int = 3600
 
     @classmethod
     def from_environment(cls, environment: Mapping[str, str] | None = None) -> Settings:
@@ -110,6 +114,18 @@ class Settings:
                     "JARVIS_AI_API_KEY_FILE",
                     default="/run/secrets/openai_api_key",
                 )
+            ),
+            openwebui_base_url=_first(env, "JARVIS_OPENWEBUI_BASE_URL").rstrip("/"),
+            openwebui_model=_first(env, "JARVIS_OPENWEBUI_MODEL", default="jarvis"),
+            openwebui_api_key_file=Path(
+                _first(
+                    env,
+                    "JARVIS_OPENWEBUI_API_KEY_FILE",
+                    default="/run/secrets/openwebui_api_key",
+                )
+            ),
+            openwebui_timeout_seconds=int(
+                _first(env, "JARVIS_OPENWEBUI_TIMEOUT_SECONDS", default="3600")
             ),
         )
 

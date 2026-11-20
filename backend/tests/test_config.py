@@ -41,3 +41,22 @@ def test_settings_repr_does_not_read_postgres_secret(tmp_path: Path) -> None:
     rendered = repr(settings)
     assert "sensitive-access-key" not in rendered
     assert "sensitive-secret-key" not in rendered
+
+
+def test_openwebui_configuration_is_separate_from_cloud_settings(tmp_path: Path) -> None:
+    settings = Settings.from_environment(
+        {
+            "JARVIS_AI_PROVIDER": "openwebui",
+            "JARVIS_OPENWEBUI_BASE_URL": "http://100.127.56.71:3000/",
+            "JARVIS_OPENWEBUI_MODEL": "jarvis",
+            "JARVIS_OPENWEBUI_TIMEOUT_SECONDS": "1800",
+            "JARVIS_OPENWEBUI_API_KEY_FILE": str(tmp_path / "local-key"),
+        }
+    )
+    assert settings.ai_provider == "openwebui"
+    assert settings.openwebui_base_url == "http://100.127.56.71:3000"
+    assert settings.openwebui_model == "jarvis"
+    assert settings.openwebui_timeout_seconds == 1800
+    assert settings.openwebui_api_key_file == tmp_path / "local-key"
+    assert settings.ai_api_key_file != settings.openwebui_api_key_file
+    assert Settings.from_environment({}).ai_provider == "disabled"
