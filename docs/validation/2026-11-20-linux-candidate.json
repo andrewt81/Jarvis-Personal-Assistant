@@ -1,0 +1,31 @@
+{
+  "date": "2026-11-20",
+  "evidence_source": "operator_supplied_terminal_output",
+  "host": "jarvis",
+  "candidate_source_commit": "911688036092399e77f1d1ff1577ee17bcae3de4",
+  "runner_commit": "b3d379e7782d3443680f85d9d424ff752cbb5a0b",
+  "image_tag": "jarvis-backend:preflight-9116880",
+  "temp_exec": "PASS",
+  "source_match": "PASS",
+  "lint": "PASS",
+  "format": {"status": "PASS", "files": 73},
+  "compile": "PASS",
+  "pytest": {"passed": 82, "skipped": 1, "seconds": 2.33},
+  "skipped_test": "test_authentication_lifecycle_against_postgresql",
+  "skip_reason": "PostgreSQL integration test is opt-in; no production credentials supplied",
+  "candidate_checks": "PASS",
+  "storage_preflight": {
+    "mode": "read_only",
+    "ok": true,
+    "postgresql_identity_verified": true,
+    "postgresql_tls": true,
+    "schema_usage": true,
+    "schema_create": true,
+    "migrations_present": false,
+    "s3_head_bucket": true,
+    "object_read_write_permissions": "not_tested"
+  },
+  "migrations_applied": false,
+  "application_started": false,
+  "live_llm_analysis_verified": false
+}

@@ -177,7 +177,14 @@ crea un virtualenv temporaneo con le dipendenze runtime dell'immagine e installa
 pytest 8.4.2, httpx 0.28.1 e Ruff 0.17.1. Esegue lint, formattazione, compilazione e
 pytest. Scaricamenti e risultati risiedono soltanto nel filesystem temporaneo del
 container. Il controllo non fornisce credenziali di produzione ai test e non esegue
-migrazioni. Il risultato completo resta da acquisire; non dedurlo dal preflight.
+migrazioni. L'output successivo dell'utente conferma TEMP_EXEC=PASS, SOURCE_MATCH=PASS,
+lint superato, 73 file conformi, compilazione riuscita e **82 passed, 1 skipped in
+2.33s**, con CANDIDATE_CHECKS=PASS. La verifica riguarda il codice applicativo del
+commit 911688036092399e77f1d1ff1577ee17bcae3de4 nell'immagine gia costruita.
+Il test saltato e il lifecycle PostgreSQL opt-in, non abilitato nel container privo
+di credenziali di produzione. Quel test usa TRUNCATE ed e destinato esclusivamente
+a un database di collaudo sacrificabile; non va abilitato sul database applicativo.
+Evidenza sintetica in validation/2026-11-20-linux-candidate.json.
 
 Primo tentativo del runner: SOURCE_MATCH=PASS, poi PermissionError durante l'avvio
 del Python copiato nel virtualenv sotto /tmp, prima di lint o test. Il comando
@@ -185,7 +192,7 @@ del container temporaneo non specificava exec sul tmpfs. Per questo solo contain
 di validazione, senza credenziali o volumi host, usare esplicitamente
 `--tmpfs /tmp:rw,exec,nosuid,nodev,size=512m`. Il runner ora controlla ST_NOEXEC
 prima del download e stampa TEMP_EXEC=PASS soltanto se il mount consente esecuzione.
-La correzione del comando resta da provare sul server; la suite non e ancora passata.
+La riesecuzione con exec esplicito e riuscita come riportato sopra.
 Il tmpfs del backend applicativo e quello del preflight dati non vengono modificati.
 
 ### Cronologia delle verifiche locali precedenti

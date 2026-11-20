@@ -31,8 +31,10 @@ Verifica successiva sul container Linux di Jarvis: immagine preflight-9116880
 costruita dal commit 911688036092399e77f1d1ff1577ee17bcae3de4; preflight ok=true.
 Autenticazione PostgreSQL e TLS effettivo confermati, privilegi sullo schema
 disponibili; HEAD del bucket S3 riuscito. Database senza tabelle applicative e
-senza tabella Alembic. Lettura/scrittura oggetti, suite completa Linux, migrazioni
-e inizializzazione dell'account applicativo ancora da eseguire.
+senza tabella Alembic. La suite completa Linux sul candidato ha poi restituito
+82 passed, 1 skipped e CANDIDATE_CHECKS=PASS; lint, formattazione e compilazione
+superati. Lettura/scrittura oggetti, migrazioni e inizializzazione dell'account
+applicativo ancora da eseguire.
 
 Configurazione, prove, limiti di conservazione delle copie su Open WebUI, gestione
 dei job lunghi e ripristino sono in [ULTRON_INTEGRATION.md](ULTRON_INTEGRATION.md).
