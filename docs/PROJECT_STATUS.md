@@ -1,6 +1,62 @@
 # Jarvis Personal Assistant - stato, decisioni e roadmap
 
-Ultimo aggiornamento: 22 ottobre 2026.
+Ultimo aggiornamento: 20 novembre 2026.
+
+## Ripresa del 20 novembre: applicazione e inferenza separate
+
+L'host **jarvis** ospitera l'applicazione; l'host **ultron** esegue LLM, Ollama,
+Open WebUI e Docling. `jarvis` e anche il nome del profilo Open WebUI su Ultron.
+L'architettura dati del 22 ottobre resta confermata: PostgreSQL 17 e RustFS su
+**edith**, con database jarvis, utente jarvis_app e bucket jarvis-documents-prod
+dedicati all'applicazione. Nessuna migrazione dei dati sull'host jarvis e prevista.
+La precedente annotazione che escludeva Edith era un'interpretazione errata ed e
+sostituita da questa conferma dell'utente. Esistenza e permessi delle risorse vanno
+verificati prima del primo avvio; non si usano risorse di altre applicazioni.
+
+Su jarvis sono stati verificati tramite output dell'utente Debian 13.7, circa
+8 GiB RAM, Traefik healthy sulla rete proxy e la presenza di /opt/jarvis. Al primo
+inventario nessun container applicativo era avviato. I file sotto /opt/jarvis puntano
+a Edith 10.10.30.20:5432 (TLS require) e 10.10.30.20:9000 (S3 path-style).
+Tailscale e attivo su jarvis, IP 100.79.96.2; HTTP verso Open WebUI su Ultron
+100.127.56.71:3000 verificato dall'host e da Traefik. Autenticazione API Open WebUI
+ancora da verificare; accesso autenticato PostgreSQL e HEAD del bucket verificati.
+
+Il codice locale del ramo feature/ultron-document-analysis aggiunge il provider
+Open WebUI, senza aggiornare il profilo remoto o cambiare i contratti Android.
+Endpoint Tailscale esplicito, allegato singolo, nuova chat per analisi, native
+tool calling, ragionamento booleano attivo e risultato JSON finale validato.
+Nessun fallback cloud. La configurazione di rilascio e candidata e non applicata.
+
+Verifica successiva sul container Linux di Jarvis: immagine preflight-9116880
+costruita dal commit 911688036092399e77f1d1ff1577ee17bcae3de4; preflight ok=true.
+Autenticazione PostgreSQL e TLS effettivo confermati, privilegi sullo schema
+disponibili; HEAD del bucket S3 riuscito. Database senza tabelle applicative e
+senza tabella Alembic. La suite completa Linux sul candidato ha poi restituito
+82 passed, 1 skipped e CANDIDATE_CHECKS=PASS; lint, formattazione e compilazione
+superati. Successivamente l'utente ha applicato le sei migrazioni dall'immagine
+verificata su Jarvis al database jarvis su Edith: alembic current conferma
+20261022_0006 (head). Lettura/scrittura oggetti ancora da verificare; primo
+account e pilota interno predisposti come descritto sotto.
+
+Primo proprietario creato tramite CLI interattiva; nessuna credenziale o identita
+personale viene registrata qui. Container jarvis-backend-pilot avviato sulla rete
+proxy con traefik.enable=false, nessuna porta host, AI disabled. L'endpoint interno
+/health/ready restituisce ready con PostgreSQL e object_storage available. Smoke
+autenticato riuscito: rifiuto anonimo, login, identita, nucleo owner e persona
+collegata, logout e revoca confermati. Smoke documentale riuscito: TXT sintetico
+caricato, hash e byte originali verificati, accessi anonimi respinti, nucleo e
+documento inesistenti nascosti, analisi AI disabilitata e solo file sintetico
+rimosso. Lettura/scrittura via S3 confermata attraverso l'API applicativa;
+isolamento fra due utenti reali e analisi AI live ancora da collaudare.
+
+Configurazione, prove, limiti di conservazione delle copie su Open WebUI, gestione
+dei job lunghi e ripristino sono in [ULTRON_INTEGRATION.md](ULTRON_INTEGRATION.md).
+La baseline locale di partenza e 02edf87 sul ramo develop, confrontata con la
+testa remota dello stesso ramo prima della pubblicazione: coincidono. L'incremento
+e pubblicato nella PR #11 in bozza verso develop. Nessun merge o rilascio
+permanente; l'avvio del solo pilota interno e descritto sopra.
+
+## Stato storico al 22 ottobre 2026
 
 Questo documento raccoglie in un solo punto gli avanzamenti, le idee, le decisioni e i
 prossimi sviluppi. Deve essere aggiornato a ogni modifica funzionale o architetturale
