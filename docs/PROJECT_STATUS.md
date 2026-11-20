@@ -14,8 +14,8 @@ sostituita da questa conferma dell'utente. Esistenza e permessi delle risorse va
 verificati prima del primo avvio; non si usano risorse di altre applicazioni.
 
 Su jarvis sono stati verificati tramite output dell'utente Debian 13.7, circa
-8 GiB RAM, Traefik healthy sulla rete proxy e la presenza di /opt/jarvis. Nessun
-container applicativo risulta avviato. I file predisposti sotto /opt/jarvis puntano
+8 GiB RAM, Traefik healthy sulla rete proxy e la presenza di /opt/jarvis. Al primo
+inventario nessun container applicativo era avviato. I file sotto /opt/jarvis puntano
 a Edith 10.10.30.20:5432 (TLS require) e 10.10.30.20:9000 (S3 path-style).
 Tailscale e attivo su jarvis, IP 100.79.96.2; HTTP verso Open WebUI su Ultron
 100.127.56.71:3000 verificato dall'host e da Traefik. Autenticazione API Open WebUI
@@ -35,14 +35,21 @@ senza tabella Alembic. La suite completa Linux sul candidato ha poi restituito
 82 passed, 1 skipped e CANDIDATE_CHECKS=PASS; lint, formattazione e compilazione
 superati. Successivamente l'utente ha applicato le sei migrazioni dall'immagine
 verificata su Jarvis al database jarvis su Edith: alembic current conferma
-20261022_0006 (head). Lettura/scrittura oggetti e inizializzazione dell'account
-applicativo ancora da eseguire; backend non ancora avviato.
+20261022_0006 (head). Lettura/scrittura oggetti ancora da verificare; primo
+account e pilota interno predisposti come descritto sotto.
+
+Primo proprietario creato tramite CLI interattiva; nessuna credenziale o identita
+personale viene registrata qui. Container jarvis-backend-pilot avviato sulla rete
+proxy con traefik.enable=false, nessuna porta host, AI disabled. L'endpoint interno
+/health/ready restituisce ready con PostgreSQL e object_storage available. Login,
+lettura dei documenti, operazioni S3 e analisi AI live restano da collaudare.
 
 Configurazione, prove, limiti di conservazione delle copie su Open WebUI, gestione
 dei job lunghi e ripristino sono in [ULTRON_INTEGRATION.md](ULTRON_INTEGRATION.md).
 La baseline locale di partenza e 02edf87 sul ramo develop, confrontata con la
 testa remota dello stesso ramo prima della pubblicazione: coincidono. L'incremento
-e destinato a una PR in bozza verso develop. Nessun merge o deployment effettuato.
+e pubblicato nella PR #11 in bozza verso develop. Nessun merge o rilascio
+permanente; l'avvio del solo pilota interno e descritto sopra.
 
 ## Stato storico al 22 ottobre 2026
 

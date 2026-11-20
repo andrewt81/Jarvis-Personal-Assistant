@@ -160,6 +160,17 @@ ancora scegliere openai in modo esplicito con il relativo segreto.
 
 ### Riscontri dal container su Jarvis
 
+Stato attuale: primo proprietario creato tramite CLI interattiva (identificativo
+personale omesso dal repository). Container interno jarvis-backend-pilot avviato
+con la stessa immagine verificata, rete proxy, traefik.enable=false, nessuna porta
+pubblicata e AI disabled. /health/ready ha restituito ready con entrambe le dipendenze
+available. Il prossimo controllo usa scripts/smoke_auth.py copiato nel /tmp del
+pilota: input interattivo, password nascosta, token soltanto in memoria. Verifica
+rifiuto anonimo, login, identita del profilo, nucleo owner e persona collegata,
+logout e revoca del token. Legge dati del proprietario e crea/revoca la sola sessione
+di prova; non crea o modifica documenti, persone, nuclei o attivita. Non stampa
+identificativi personali, password, token o corpi degli errori. Esito ancora da acquisire.
+
 Stato successivo confermato dall'output dell'utente: dopo il superamento della suite,
 eseguiti `alembic upgrade head` e `alembic current` dall'immagine candidata su Jarvis
 con le sole credenziali PostgreSQL dell'applicazione. Applicate le sei revisioni

@@ -34,7 +34,15 @@
     "at_head": true,
     "transactional_ddl": true
   },
-  "first_owner_created": false,
-  "application_started": false,
+  "first_owner_created": true,
+  "application_started": true,
+  "application_mode": "internal_pilot_ai_disabled",
+  "application_readiness": {
+    "status": "ready",
+    "postgresql": "available",
+    "object_storage": "available"
+  },
+  "production_release": false,
+  "authenticated_login_verified": false,
   "live_llm_analysis_verified": false
 }
