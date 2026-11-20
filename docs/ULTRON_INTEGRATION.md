@@ -1,6 +1,7 @@
 # Applicazione Jarvis e inferenza su Ultron
 
-20 novembre 2026. Implementazione candidata locale; nessun deployment o collaudo remoto effettuato.
+20 novembre 2026. Implementazione candidata pubblicata in PR #11; nessun deployment
+o collaudo applicativo remoto effettuato. Verifica HTTP di rete riuscita come riportato sotto.
 
 ## Ruoli confermati dall'utente e dagli output della sessione
 
@@ -16,6 +17,35 @@ Non dimostra che esistano servizi dedicati all'applicazione attuale. La sede dei
 applicativi è ancora da verificare: questo incremento non installa database o storage.
 
 ## Implementazione
+
+### Verifiche successive sulla rete e sui template dell'host
+
+Output forniti dall'utente: Tailscale e ora presente sull'host applicativo jarvis,
+con indirizzo **100.79.96.2**. La richiesta a http://100.127.56.71:3000/health ha
+restituito HTTP 200 dall'host e `{"status":true}` dal container Traefik sulla rete
+proxy. Questo verifica la raggiungibilita HTTP da quei due contesti, non ancora
+l'autenticazione API o il funzionamento del futuro container backend.
+
+Sono presenti config/postgresql.env, secrets/postgresql-password, secrets/rustfs.env,
+deploy/backend.env.template e deploy/compose.backend.template.yaml sotto /opt/jarvis.
+Sono stati acquisiti soltanto i nomi delle variabili e il bucket dichiarato
+jarvis-documents-prod; endpoint effettivi, proprieta e permessi restano da verificare.
+Il codice supporta i nomi presenti nei template senza richiedere la riscrittura dei
+file sul server:
+
+| Nome predisposto sull'host | Campo di configurazione |
+|---|---|
+| JARVIS_DB_HOST / JARVIS_DB_PORT | postgres_host / postgres_port |
+| JARVIS_DB_NAME / JARVIS_DB_USER | postgres_database / postgres_user |
+| JARVIS_DB_SSLMODE / JARVIS_DB_PASSWORD_FILE | postgres_sslmode / postgres_password_file |
+| JARVIS_S3_ENDPOINT | s3_endpoint_url |
+| JARVIS_S3_ACCESS_KEY / JARVIS_S3_SECRET_KEY | s3_access_key_id / s3_secret_access_key |
+
+I nomi canonici JARVIS_POSTGRES_* e JARVIS_S3_* piu specifici restano prioritari
+quando valorizzati; un valore vuoto lascia usare l'alias. Nessun segreto e stato
+letto dall'host, copiato nel repository o incluso nell'output diagnostico.
+
+### Flusso del provider
 
 Il DocumentService continua ad autorizzare account/nucleo/ruolo prima di recuperare
 l'originale e invocare il provider. L'API e il client Android conservano i contratti
@@ -98,7 +128,7 @@ ancora scegliere openai in modo esplicito con il relativo segreto.
 ## Collaudo remoto ancora da eseguire
 
 1. Verificare il contenuto non sensibile di /opt/jarvis e preservare configurazioni esistenti.
-2. Verificare Tailscale da jarvis verso Ultron, anche dalla rete del container applicativo.
+2. HTTP da jarvis e Traefik a Ultron verificato; resta la prova dal container applicativo.
    Non pubblicare ulteriori porte di Ollama o Docling e non aprire endpoint AI su Internet.
 3. Individuare PostgreSQL e deposito originali dedicati all'applicazione, esclusa Edith.
 4. Predisporre l'identità tecnica e provarne il rifiuto di accesso a documenti estranei.
@@ -113,6 +143,10 @@ ancora scegliere openai in modo esplicito con il relativo segreto.
    dell'uso con dati personali. Non trattare la sola suite locale come via libera al rilascio.
 
 ## Verifiche locali del 20 novembre
+
+- Aggiornamento compatibilita template host: **55 test superati** (connettore e
+  configurazione), inclusi i dieci nuovi casi per alias, precedenza dei parametri,
+  fallback su valori vuoti e mancata esposizione dei segreti sintetici nel repr.
 
 - **45 test superati**: suite del nuovo connettore e configurazione. Il trasporto e il
   server Open WebUI sono simulati. Sono inclusi divieto di upload prima del controllo

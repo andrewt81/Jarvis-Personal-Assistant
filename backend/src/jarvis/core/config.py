@@ -55,26 +55,49 @@ class Settings:
             http_host=_first(env, "JARVIS_HTTP_HOST", default="0.0.0.0"),  # noqa: S104
             http_port=int(_first(env, "JARVIS_HTTP_PORT", default="8080")),
             log_level=_first(env, "JARVIS_LOG_LEVEL", default="INFO").upper(),
-            postgres_host=_first(env, "JARVIS_POSTGRES_HOST", "POSTGRES_HOST", "PGHOST"),
-            postgres_port=int(
-                _first(env, "JARVIS_POSTGRES_PORT", "POSTGRES_PORT", "PGPORT", default="5432")
+            postgres_host=_first(
+                env, "JARVIS_POSTGRES_HOST", "JARVIS_DB_HOST", "POSTGRES_HOST", "PGHOST"
             ),
-            postgres_database=_first(env, "JARVIS_POSTGRES_DATABASE", "POSTGRES_DB", "PGDATABASE"),
-            postgres_user=_first(env, "JARVIS_POSTGRES_USER", "POSTGRES_USER", "PGUSER"),
+            postgres_port=int(
+                _first(
+                    env,
+                    "JARVIS_POSTGRES_PORT",
+                    "JARVIS_DB_PORT",
+                    "POSTGRES_PORT",
+                    "PGPORT",
+                    default="5432",
+                )
+            ),
+            postgres_database=_first(
+                env, "JARVIS_POSTGRES_DATABASE", "JARVIS_DB_NAME", "POSTGRES_DB", "PGDATABASE"
+            ),
+            postgres_user=_first(
+                env, "JARVIS_POSTGRES_USER", "JARVIS_DB_USER", "POSTGRES_USER", "PGUSER"
+            ),
             postgres_sslmode=_first(
-                env, "JARVIS_POSTGRES_SSLMODE", "POSTGRES_SSLMODE", "PGSSLMODE", default="require"
+                env,
+                "JARVIS_POSTGRES_SSLMODE",
+                "JARVIS_DB_SSLMODE",
+                "POSTGRES_SSLMODE",
+                "PGSSLMODE",
+                default="require",
             ),
             postgres_password_file=Path(
                 _first(
                     env,
                     "JARVIS_POSTGRES_PASSWORD_FILE",
+                    "JARVIS_DB_PASSWORD_FILE",
                     "POSTGRES_PASSWORD_FILE",
                     "PGPASSWORD_FILE",
                     default="/run/secrets/postgresql_password",
                 )
             ),
             s3_endpoint_url=_first(
-                env, "JARVIS_S3_ENDPOINT_URL", "S3_ENDPOINT_URL", "RUSTFS_ENDPOINT"
+                env,
+                "JARVIS_S3_ENDPOINT_URL",
+                "JARVIS_S3_ENDPOINT",
+                "S3_ENDPOINT_URL",
+                "RUSTFS_ENDPOINT",
             ),
             s3_bucket=_first(env, "JARVIS_S3_BUCKET", "S3_BUCKET", "RUSTFS_BUCKET"),
             s3_region=_first(
@@ -92,6 +115,7 @@ class Settings:
             s3_access_key_id=_first(
                 env,
                 "JARVIS_S3_ACCESS_KEY_ID",
+                "JARVIS_S3_ACCESS_KEY",
                 "S3_ACCESS_KEY_ID",
                 "AWS_ACCESS_KEY_ID",
                 "RUSTFS_ACCESS_KEY",
@@ -99,6 +123,7 @@ class Settings:
             s3_secret_access_key=_first(
                 env,
                 "JARVIS_S3_SECRET_ACCESS_KEY",
+                "JARVIS_S3_SECRET_KEY",
                 "S3_SECRET_ACCESS_KEY",
                 "AWS_SECRET_ACCESS_KEY",
                 "RUSTFS_SECRET_KEY",
