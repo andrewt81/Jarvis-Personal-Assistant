@@ -158,6 +158,23 @@ ancora scegliere openai in modo esplicito con il relativo segreto.
 
 ## Verifiche locali del 20 novembre
 
+- Verifica su Edith tramite output dell'utente: database jarvis di proprieta di
+  jarvis_app; ruolo con LOGIN e senza SUPERUSER, CREATEDB o CREATEROLE. Nessuna
+  tabella applicativa elencata e public.alembic_version assente. Nessuna migrazione
+  applicata in questa sessione.
+- Aggiunto `python -m jarvis.preflight`, da eseguire nell'immagine applicativa con
+  i file protetti gia presenti su Jarvis. La connessione PostgreSQL usa una transazione
+  READ ONLY e verifica database, ruolo e TLS effettivo tramite pg_stat_ssl. Riporta
+  privilegi USAGE/CREATE su public e presenza della tabella migrazioni senza modificarli.
+  Il controllo S3 usa esclusivamente HEAD del bucket: non prova lettura o scrittura
+  di oggetti. L'output JSON non contiene DSN, chiavi, password o corpi degli errori.
+- **63 test locali superati**: preflight, configurazione e connettore, con engine e
+  servizio S3 simulati. I driver effettivi e le credenziali reali vanno collaudati
+  nel container Linux; l'ambiente locale blocca anche un'estensione DLL di SQLAlchemy.
+  I test del preflight usano dipendenze simulate e non certificano la connettivita.
+- Ruff check, formattazione (73 file), compilazione Python e diff check superati
+  dopo l'aggiunta del preflight. Build e suite completa restano da eseguire su Linux.
+
 - Aggiornamento compatibilita template host: **55 test superati** (connettore e
   configurazione), inclusi i dieci nuovi casi per alias, precedenza dei parametri,
   fallback su valori vuoti e mancata esposizione dei segreti sintetici nel repr.
