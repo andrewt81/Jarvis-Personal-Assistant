@@ -160,6 +160,17 @@ ancora scegliere openai in modo esplicito con il relativo segreto.
 
 ### Riscontri dal container su Jarvis
 
+Smoke documentale live completato con ok=true dall'output dell'utente: upload TXT
+sintetico, confronto hash e byte originali, rifiuto anonimo, nucleo/documento
+inesistenti nascosti, analisi disabilitata, file di prova rimosso e sessione
+revocata. Questo verifica PUT/GET attraverso l'applicazione e la rimozione API del
+solo file creato nella prova; non certifica l'eliminazione fisica di versioni S3
+o l'isolamento fra due utenti distinti. Il prossimo passo e predisporre un account
+tecnico Open WebUI non amministratore, con API key e accesso al profilo jarvis
+e ai tre strumenti gia verificati, e salvare la nuova chiave soltanto nel file
+protetto dedicato su Jarvis. La chiave personale DPAPI rimane sul PC. Non sono
+ancora state fornite o verificate le credenziali tecniche e il pilota resta AI disabled.
+
 Smoke autenticato confermato dall'output dell'utente: tutti i controlli true e
 ok=true per rifiuto anonimo, login, identita profilo, nucleo owner, persona collegata,
 logout e session_revoked. Nessun identificativo personale o segreto nel report.

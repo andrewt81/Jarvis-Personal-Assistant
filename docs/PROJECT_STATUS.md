@@ -43,8 +43,11 @@ personale viene registrata qui. Container jarvis-backend-pilot avviato sulla ret
 proxy con traefik.enable=false, nessuna porta host, AI disabled. L'endpoint interno
 /health/ready restituisce ready con PostgreSQL e object_storage available. Smoke
 autenticato riuscito: rifiuto anonimo, login, identita, nucleo owner e persona
-collegata, logout e revoca confermati. Operazioni documentali/S3 e analisi AI live
-restano da collaudare.
+collegata, logout e revoca confermati. Smoke documentale riuscito: TXT sintetico
+caricato, hash e byte originali verificati, accessi anonimi respinti, nucleo e
+documento inesistenti nascosti, analisi AI disabilitata e solo file sintetico
+rimosso. Lettura/scrittura via S3 confermata attraverso l'API applicativa;
+isolamento fra due utenti reali e analisi AI live ancora da collaudare.
 
 Configurazione, prove, limiti di conservazione delle copie su Open WebUI, gestione
 dei job lunghi e ripristino sono in [ULTRON_INTEGRATION.md](ULTRON_INTEGRATION.md).

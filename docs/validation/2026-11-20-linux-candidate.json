@@ -54,5 +54,18 @@
     "profile_identity_verified": true,
     "session_revoked": true
   },
+  "document_smoke": {
+    "analysis_disabled": true,
+    "anonymous_document_blocked": true,
+    "document_uploaded": true,
+    "missing_document_hidden": true,
+    "ok": true,
+    "original_content_and_hash_verified": true,
+    "synthetic_document_removed": true,
+    "wrong_household_hidden": true,
+    "session_revoked": true
+  },
+  "object_read_write_verified_via_application": true,
+  "physical_s3_version_purge_verified": false,
   "live_llm_analysis_verified": false
 }
