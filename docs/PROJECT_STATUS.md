@@ -1,6 +1,18 @@
 # Jarvis Personal Assistant - stato, decisioni e roadmap
 
-Ultimo aggiornamento: 20 novembre 2026.
+Ultimo aggiornamento: 24 novembre 2026.
+
+## Verifica del collegamento Open WebUI del 24 novembre
+
+La chiave dedicata legge il profilo e i tre strumenti. I parametri sono nascosti
+agli utenti con sola lettura in Open WebUI 0.13.4: il precedente controllo li
+interpretava erroneamente come mancanti. La lettura amministrativa diretta ha
+riconfermato think booleano true, contesto 65536 e versione
+173da814-b2a7-4aba-9f8a-dc0b1e21ec80, senza modifiche al profilo.
+La correzione candidata accetta parametri nascosti soltanto per quella versione
+esplicitamente attestata nella configurazione. Collaudo nuova immagine e analisi
+LLM con account dedicato ancora pendenti; il pilota resta AI disabled.
+Dettagli e ripristino: docs/ULTRON_INTEGRATION.md.
 
 ## Ripresa del 20 novembre: applicazione e inferenza separate
 

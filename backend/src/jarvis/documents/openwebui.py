@@ -181,7 +181,9 @@ class OpenWebUIDocumentAnalyzer:
             profile = client.request(
                 "GET", "/api/v1/models/model?id=" + quote(self._settings.openwebui_model, safe="")
             )
-            self._check_profile(profile)
+            self._check_profile(
+                profile, expected_version_id=self._settings.openwebui_profile_version_id
+            )
             if profile.get("id") != self._settings.openwebui_model:
                 raise AnalysisUnavailableError("Open WebUI model identity mismatch")
             # Generic filename: don't disclose household/person names in chat titles or uploads.
@@ -228,14 +230,25 @@ class OpenWebUIDocumentAnalyzer:
             client.close()
 
     @staticmethod
-    def _check_profile(profile: dict) -> None:
+    def _check_profile(profile: dict, *, expected_version_id: str = "") -> None:
         params = profile.get("params", {})
         meta = profile.get("meta", {})
         if not isinstance(params, dict) or not isinstance(meta, dict):
             raise AnalysisUnavailableError("Open WebUI profile was invalid")
+        if expected_version_id and profile.get("version_id") != expected_version_id:
+            raise AnalysisUnavailableError("Open WebUI profile version changed")
+        # v0.13.4 deliberately hides all params from read-only callers. Accept
+        # that representation only when an operator has checked the full profile
+        # and explicitly pinned its immutable version in deployment configuration.
+        attested_hidden_params = (
+            profile.get("write_access") is False
+            and params == {}
+            and bool(expected_version_id)
+            and profile.get("version_id") == expected_version_id
+        )
         tool_ids = meta.get("toolIds", [])
         if (
-            params.get("think") is not True
+            (not attested_hidden_params and params.get("think") is not True)
             or profile.get("is_active") is False
             or not isinstance(tool_ids, list)
             or any(not isinstance(tool, str) or tool not in _TOOLS for tool in tool_ids)

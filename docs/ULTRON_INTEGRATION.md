@@ -1,5 +1,41 @@
 # Applicazione Jarvis e inferenza su Ultron
 
+## Aggiornamento verificato del 24 novembre 2026
+
+La chiave dedicata presente su Jarvis legge il profilo `jarvis` e tutti e tre gli
+strumenti autorizzati (output del controllo eseguito dall'operatore). Il ruolo
+dell'account non e stato verificato tramite questa API. Nessuna inferenza e stata
+avviata in queste prove. Il pilota esistente mantiene AI disabilitata.
+
+Il codice upstream v0.13.4 impone una sessione umana per GET /api/v1/auths/ e
+restituisce `params: {}` sul profilo agli utenti con solo accesso in lettura.
+I precedenti 403 e parametri mancanti erano quindi incompatibilita del controllo,
+non prova di una chiave errata o di una modifica del modello.
+
+Una lettura amministrativa diretta, con la credenziale DPAPI gia disponibile,
+ha riconfermato versione `173da814-b2a7-4aba-9f8a-dc0b1e21ec80`, base
+`qwen3.8:27b`, think booleano true, num_ctx 65536 e tutte le condizioni della
+policy (strumenti ammessi, PDF presente, niente knowledge/filter aggiuntivi,
+profilo attivo, function calling compatibile). Nessun profilo e stato modificato.
+
+La correzione candidata introduce `JARVIS_OPENWEBUI_PROFILE_VERSION_ID`, vuoto
+per default. Parametri nascosti sono accettati soltanto con write_access=false,
+params esattamente vuoto e versione identica a quella attestata esplicitamente
+dall'operatore dopo la lettura completa. Una versione diversa blocca il flusso
+prima dell'upload. I controlli su meta/strumenti restano attivi; la richiesta non
+sovrascrive think, contesto o system prompt, che Open WebUI applica dal profilo.
+Non assegnare scrittura o ruolo amministratore al servizio per leggere i parametri.
+
+Il probe distingue parametri nascosti (valore null, non false) da configurazione
+errata. L'eventuale ok sul probe attesta accesso e policy/versione, non un'analisi
+LLM completa. La correzione e verificata localmente; nuova immagine Linux e prova
+con chiave dedicata restano da collaudare. Il pilota precedente non va fermato
+prima di questi controlli. Ripristino: mantenere l'immagine precedente e AI
+disabilitata; nessuna migrazione, modifica di dati o rotazione di chiavi necessaria.
+
+Le sezioni del 20 novembre che seguono descrivono lo stato storico; per i collaudi
+successivi vedere anche docs/validation/2026-11-20-linux-candidate.json.
+
 20 novembre 2026. Implementazione candidata pubblicata in PR #11; nessun deployment
 o collaudo applicativo remoto effettuato. Verifica HTTP di rete riuscita come riportato sotto.
 

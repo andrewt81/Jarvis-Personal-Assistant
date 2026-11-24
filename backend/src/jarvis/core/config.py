@@ -45,6 +45,7 @@ class Settings:
     openwebui_model: str = "jarvis"
     openwebui_api_key_file: Path = field(default=Path("/run/secrets/openwebui_api_key"), repr=False)
     openwebui_timeout_seconds: int = 3600
+    openwebui_profile_version_id: str = ""
 
     @classmethod
     def from_environment(cls, environment: Mapping[str, str] | None = None) -> Settings:
@@ -142,6 +143,7 @@ class Settings:
             ),
             openwebui_base_url=_first(env, "JARVIS_OPENWEBUI_BASE_URL").rstrip("/"),
             openwebui_model=_first(env, "JARVIS_OPENWEBUI_MODEL", default="jarvis"),
+            openwebui_profile_version_id=_first(env, "JARVIS_OPENWEBUI_PROFILE_VERSION_ID"),
             openwebui_api_key_file=Path(
                 _first(
                     env,

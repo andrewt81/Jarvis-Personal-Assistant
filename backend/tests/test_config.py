@@ -170,3 +170,9 @@ def test_jarvis_template_aliases_preserve_explicit_override_and_blank_fallback(
     assert getattr(settings, attribute) == expected_first
     fallback = Settings.from_environment({primary: "  ", alias: second})
     assert getattr(fallback, attribute) == expected_second
+
+
+def test_openwebui_version_pin_is_explicit_and_optional():
+    assert Settings.from_environment({}).openwebui_profile_version_id == ""
+    configured = Settings.from_environment({"JARVIS_OPENWEBUI_PROFILE_VERSION_ID": " verified "})
+    assert configured.openwebui_profile_version_id == "verified"

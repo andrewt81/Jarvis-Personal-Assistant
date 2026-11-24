@@ -198,6 +198,44 @@ def test_wrong_profile_identity_prevents_upload(local_settings, server):
     assert len(server.calls) == 1
 
 
+def test_read_only_profile_uses_explicitly_attested_version(local_settings, server):
+    version = str(uuid4())
+    server.profile.update(params={}, write_access=False, version_id=version)
+    result = analyze(replace(local_settings, openwebui_profile_version_id=version))
+    assert result.summary == OUTPUT["summary"]
+    assert server.completion["params"] == {"function_calling": "native"}
+
+
+@pytest.mark.parametrize("pin", ["", "different-version"])
+def test_hidden_profile_without_matching_attestation_fails_before_upload(
+    local_settings, server, pin
+):
+    server.profile.update(params={}, write_access=False, version_id=str(uuid4()))
+    with pytest.raises(AnalysisUnavailableError):
+        analyze(replace(local_settings, openwebui_profile_version_id=pin))
+    assert len(server.calls) == 1
+
+
+@pytest.mark.parametrize(
+    "change",
+    [
+        {"write_access": True},
+        {"params": {"think": "true"}},
+        {"params": {"think": False}},
+        {"meta": {"toolIds": ["jarvis_original_pdf", "send_email"]}},
+        {"meta": {"toolIds": ["jarvis_original_pdf"], "knowledge": ["foreign"]}},
+        {"meta": {"toolIds": ["jarvis_original_pdf"], "filterIds": ["unknown"]}},
+    ],
+)
+def test_attestation_does_not_bypass_other_profile_checks(local_settings, server, change):
+    version = str(uuid4())
+    server.profile.update(params={}, write_access=False, version_id=version)
+    server.profile.update(change)
+    with pytest.raises(AnalysisUnavailableError):
+        analyze(replace(local_settings, openwebui_profile_version_id=version))
+    assert len(server.calls) == 1
+
+
 @pytest.mark.parametrize(
     "url",
     [
