@@ -35,6 +35,10 @@ Copie Open WebUI, purge fisico S3, isolamento con due utenti reali, sostituzione
 del documento e invalidazione dell'analisi restano da verificare. L'uso effettivo
 degli strumenti di lettura/render PDF non e dimostrato da questo solo risultato.
 Il servizio resta un pilota interno temporaneo, non un rilascio di produzione.
+Preparato il successivo collaudo con due account temporanei sull'API reale,
+nuclei distinti, hash identici e grant/revoca viewer sulla sessione
+esistente. Nessuna prova server ancora effettuata per questo incremento.
+Procedura, pulizia e limiti: docs/MULTIUSER_PILOT.md.
 Dettagli e ripristino: docs/ULTRON_INTEGRATION.md.
 
 ## Ripresa del 20 novembre: applicazione e inferenza separate
