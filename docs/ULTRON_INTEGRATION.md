@@ -28,9 +28,13 @@ Non assegnare scrittura o ruolo amministratore al servizio per leggere i paramet
 
 Il probe distingue parametri nascosti (valore null, non false) da configurazione
 errata. L'eventuale ok sul probe attesta accesso e policy/versione, non un'analisi
-LLM completa. La correzione e verificata localmente; nuova immagine Linux e prova
-con chiave dedicata restano da collaudare. Il pilota precedente non va fermato
-prima di questi controlli. Ripristino: mantenere l'immagine precedente e AI
+LLM completa. La nuova immagine jarvis-backend:pilot-5b8e977 ha superato il collaudo
+Linux: corrispondenza sorgenti, lint, 76 file formattati, 92 test passati e uno
+saltato. Il probe con chiave dedicata e pin restituisce ok=true; l'analisi LLM
+reale resta da collaudare. La lettura amministrativa conferma che l'unico account
+chiamato Jarvis App ha ruolo user; non identifica la chiave salvata su Jarvis.
+Evidenza: docs/validation/2026-11-24-openwebui-candidate.json.
+Ripristino: mantenere il pilota precedente con immagine precedente e AI
 disabilitata; nessuna migrazione, modifica di dati o rotazione di chiavi necessaria.
 
 Le sezioni del 20 novembre che seguono descrivono lo stato storico; per i collaudi

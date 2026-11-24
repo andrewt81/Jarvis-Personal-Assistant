@@ -10,8 +10,12 @@ interpretava erroneamente come mancanti. La lettura amministrativa diretta ha
 riconfermato think booleano true, contesto 65536 e versione
 173da814-b2a7-4aba-9f8a-dc0b1e21ec80, senza modifiche al profilo.
 La correzione candidata accetta parametri nascosti soltanto per quella versione
-esplicitamente attestata nella configurazione. Collaudo nuova immagine e analisi
-LLM con account dedicato ancora pendenti; il pilota resta AI disabled.
+esplicitamente attestata nella configurazione. Il collaudo Linux della nuova
+immagine ha superato 92 test (uno saltato); il probe con chiave dedicata e pin
+restituisce ok=true. Analisi LLM con account dedicato ancora pendente; il pilota
+precedente resta AI disabled. L'API amministrativa conferma inoltre ruolo user
+per l'unico account chiamato Jarvis App (non identifica la chiave salvata).
+Evidenza: docs/validation/2026-11-24-openwebui-candidate.json.
 Dettagli e ripristino: docs/ULTRON_INTEGRATION.md.
 
 ## Ripresa del 20 novembre: applicazione e inferenza separate
