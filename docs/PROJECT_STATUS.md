@@ -12,7 +12,7 @@ riconfermato think booleano true, contesto 65536 e versione
 La correzione candidata accetta parametri nascosti soltanto per quella versione
 esplicitamente attestata nella configurazione. Il collaudo Linux della nuova
 immagine ha superato 92 test (uno saltato); il probe con chiave dedicata e pin
-restituisce ok=true. Prima analisi LLM di un TXT sintetico riuscita; il pilota
+restituisce ok=true. Analisi LLM di un TXT e di un PDF sintetici riuscite; il pilota
 precedente resta AI disabled. Il nuovo jarvis-backend-ai-pilot e pronto, con AI
 Open WebUI configurata, senza porte pubblicate e con Traefik disabilitato.
 L'API amministrativa conferma inoltre ruolo user
@@ -27,8 +27,14 @@ ruolo. La ripetizione ha restituito 200: codice/scadenza e fonti, dati mancanti,
 persistenza, cache sullo stesso originale, blocco anonimo e famiglia errata,
 logout/revoca verificati. Il secondo TXT sintetico e stato rimosso dall'app;
 quello del tentativo fallito resta conservato. Nessun originale reale modificato.
-Copie Open WebUI e purge fisico S3 non verificati. Ora si prepara il medesimo
-collaudo su PDF sintetico; isolamento con due utenti reali ancora da provare.
+Anche il PDF sintetico ha restituito 200, con gli stessi controlli su fonti,
+identita, persistenza/cache, dati mancanti e accessi superati, poi rimozione
+dall'applicazione verificata. Il flusso iniziale e collaudato sui documenti
+caricati nell'app, senza attestare ricerca nell'archivio o accesso indiscriminato.
+Copie Open WebUI, purge fisico S3, isolamento con due utenti reali, sostituzione
+del documento e invalidazione dell'analisi restano da verificare. L'uso effettivo
+degli strumenti di lettura/render PDF non e dimostrato da questo solo risultato.
+Il servizio resta un pilota interno temporaneo, non un rilascio di produzione.
 Dettagli e ripristino: docs/ULTRON_INTEGRATION.md.
 
 ## Ripresa del 20 novembre: applicazione e inferenza separate

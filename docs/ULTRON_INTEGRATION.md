@@ -5,7 +5,7 @@
 La chiave dedicata presente su Jarvis legge il profilo `jarvis` e tutti e tre gli
 strumenti autorizzati (output del controllo eseguito dall'operatore). Il ruolo
 dell'account non e stato verificato tramite il probe; una lettura amministrativa
-separata conferma ruolo user. Prima analisi TXT sintetica riuscita, con dettagli
+separata conferma ruolo user. Analisi TXT e PDF sintetiche riuscite, con dettagli
 del collaudo sotto. Il pilota precedente mantiene AI disabilitata. Il nuovo
 jarvis-backend-ai-pilot e stato avviato separatamente con provider Open WebUI e
 versione attestata; readiness pronta per PostgreSQL e object storage, come da
@@ -35,7 +35,7 @@ errata. L'eventuale ok sul probe attesta accesso e policy/versione, non un'anali
 LLM completa. La nuova immagine jarvis-backend:pilot-5b8e977 ha superato il collaudo
 Linux: corrispondenza sorgenti, lint, 76 file formattati, 92 test passati e uno
 saltato. Il probe con chiave dedicata e pin restituisce ok=true; l'analisi LLM
-TXT e riuscita, mentre il PDF resta da collaudare. La lettura amministrativa conferma che l'unico account
+TXT e PDF sono riuscite. La lettura amministrativa conferma che l'unico account
 chiamato Jarvis App ha ruolo user; non identifica la chiave salvata su Jarvis.
 Evidenza: docs/validation/2026-11-24-openwebui-candidate.json.
 Ripristino: mantenere il pilota precedente con immagine precedente e AI
@@ -61,8 +61,9 @@ associazione al nuovo documento, codice e scadenza con fonti, dati mancanti,
 persistenza e cache, accesso anonimo bloccato, famiglia errata nascosta anche per
 analisi gia salvata, logout e revoca della sessione verificati. Il nuovo TXT e
 stato rimosso dall'app dopo rilettura dei byte originali; resta il TXT fallito.
-Questo verifica il primo percorso applicazione-storage-LLM per un TXT sintetico,
-non ricerca nell'intero archivio, due utenti reali o analisi PDF.
+Questo primo retry verifica il percorso applicazione-storage-LLM per un TXT
+sintetico. La successiva prova PDF e descritta sotto; ricerca nell'archivio e
+isolamento con due utenti reali restano da provare.
 
 Snapshot dei soli permessi precedenti e identificatore del grant aggiunto salvati
 localmente in una directory temporanea ignorata da git, senza chiave API.
@@ -90,11 +91,20 @@ Per fermare il solo nuovo pilota: docker stop jarvis-backend-ai-pilot.
 
 La variante --pdf dello stesso script genera una pagina PDF ASCII in memoria,
 senza nuove dipendenze runtime, e applica gli stessi controlli. I 16 casi simulati
-TXT/PDF sono passati localmente. Il collaudo PDF su server e ancora pendente e
-non richiede ricostruzione dell'immagine. Un eventuale successo non attesta da
-solo una chiamata agli strumenti read_original_pdf/render_pdf_page: l'estrazione
-potrebbe essere sufficiente. Copie Open WebUI e versioni S3 restano distinte dalla
-rimozione del documento via API applicativa.
+TXT/PDF sono passati localmente. Il collaudo PDF su server e riuscito, con output
+dell'operatore: HTTP 200, associazione al documento e hash/originale corretti,
+fonti per codice/scadenza, dati mancanti, persistenza/cache, blocco anonimo,
+famiglia errata nascosta, logout e revoca. Il PDF sintetico e stato rimosso via
+API dopo rilettura dell'originale; il TXT fallito rimane per diagnosi.
+
+Il successo non attesta da solo una chiamata agli strumenti
+read_original_pdf/render_pdf_page: l'estrazione potrebbe essere stata sufficiente.
+Copie Open WebUI e versioni S3 restano distinte dalla rimozione del documento via
+API applicativa. Restano aperti isolamento con due utenti reali, sostituzione di
+documenti e invalidazione delle analisi, lifecycle delle copie e ricerca
+testuale/semantica su un archivio autorizzato. Non e stato avviato un rilascio di
+produzione o un accesso generalizzato agli archivi; entrambi i piloti temporanei
+restano separati dal routing Traefik pubblico.
 
 Le sezioni del 20 novembre che seguono descrivono lo stato storico; per i collaudi
 successivi vedere anche docs/validation/2026-11-20-linux-candidate.json.
