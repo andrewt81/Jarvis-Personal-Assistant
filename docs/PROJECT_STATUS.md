@@ -13,7 +13,9 @@ La correzione candidata accetta parametri nascosti soltanto per quella versione
 esplicitamente attestata nella configurazione. Il collaudo Linux della nuova
 immagine ha superato 92 test (uno saltato); il probe con chiave dedicata e pin
 restituisce ok=true. Analisi LLM con account dedicato ancora pendente; il pilota
-precedente resta AI disabled. L'API amministrativa conferma inoltre ruolo user
+precedente resta AI disabled. Il nuovo jarvis-backend-ai-pilot e pronto, con AI
+Open WebUI configurata, senza porte pubblicate e con Traefik disabilitato.
+L'API amministrativa conferma inoltre ruolo user
 per l'unico account chiamato Jarvis App (non identifica la chiave salvata).
 Evidenza: docs/validation/2026-11-24-openwebui-candidate.json.
 Dettagli e ripristino: docs/ULTRON_INTEGRATION.md.

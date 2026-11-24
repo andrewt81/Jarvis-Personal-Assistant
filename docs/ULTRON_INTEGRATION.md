@@ -5,7 +5,10 @@
 La chiave dedicata presente su Jarvis legge il profilo `jarvis` e tutti e tre gli
 strumenti autorizzati (output del controllo eseguito dall'operatore). Il ruolo
 dell'account non e stato verificato tramite questa API. Nessuna inferenza e stata
-avviata in queste prove. Il pilota esistente mantiene AI disabilitata.
+avviata in queste prove. Il pilota precedente mantiene AI disabilitata. Il nuovo
+jarvis-backend-ai-pilot e stato avviato separatamente con provider Open WebUI e
+versione attestata; readiness pronta per PostgreSQL e object storage, come da
+output dell'operatore. Nessuna porta pubblicata; Traefik disabilitato sul container.
 
 Il codice upstream v0.13.4 impone una sessione umana per GET /api/v1/auths/ e
 restituisce `params: {}` sul profilo agli utenti con solo accesso in lettura.
@@ -36,6 +39,24 @@ chiamato Jarvis App ha ruolo user; non identifica la chiave salvata su Jarvis.
 Evidenza: docs/validation/2026-11-24-openwebui-candidate.json.
 Ripristino: mantenere il pilota precedente con immagine precedente e AI
 disabilitata; nessuna migrazione, modifica di dati o rotazione di chiavi necessaria.
+
+### Primo smoke test AI preparato (non ancora eseguito)
+
+scripts/smoke_analysis.py viene eseguito interattivamente nel nuovo container.
+Usa le credenziali dell'applicazione soltanto in memoria, una famiglia con owner
+univoco e un singolo TXT sintetico con codice casuale, scadenza e dati mancanti.
+Verifica originali/hash, analisi collegata al nuovo ID, fonti per codice/scadenza,
+persistenza, riuso del risultato sul documento invariato, accesso anonimo e
+famiglia inesistente anche dopo aver salvato il risultato. Non prova due utenti
+reali, aggiornamenti dell'originale, ricerca testuale/semantica o visione PDF.
+
+La cancellazione interessa soltanto il nuovo ID e solo dopo successo e rilettura
+degli stessi byte. Fallimenti o timeout mantengono il documento per diagnosi.
+Logout avviene anche nei fallimenti. Il test non elimina chat/allegati Open WebUI
+e non attesta la rimozione delle versioni S3. Si stampano solo esiti e ID del nuovo
+documento, senza testo del modello, ragionamento, password o token. In caso di
+analisi lunga attende fino al timeout configurato, senza richiedere un secondo job.
+Per fermare il solo nuovo pilota: docker stop jarvis-backend-ai-pilot.
 
 Le sezioni del 20 novembre che seguono descrivono lo stato storico; per i collaudi
 successivi vedere anche docs/validation/2026-11-20-linux-candidate.json.

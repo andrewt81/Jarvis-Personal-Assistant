@@ -33,7 +33,13 @@
     "saved_service_key_identity_matched_by_admin": false
   },
   "live_llm_analysis_verified": false,
-  "ai_enabled_application_started": false,
+  "ai_enabled_application_started": true,
+  "ai_enabled_container": "jarvis-backend-ai-pilot",
+  "ai_enabled_readiness": {
+    "status": "ready",
+    "postgresql": "available",
+    "object_storage": "available"
+  },
   "production_release": false,
   "previous_ai_disabled_pilot_preserved": true
 }
