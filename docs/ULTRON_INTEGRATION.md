@@ -40,7 +40,30 @@ Evidenza: docs/validation/2026-11-24-openwebui-candidate.json.
 Ripristino: mantenere il pilota precedente con immagine precedente e AI
 disabilitata; nessuna migrazione, modifica di dati o rotazione di chiavi necessaria.
 
-### Primo smoke test AI preparato (non ancora eseguito)
+### Primo smoke test AI: tentativo e diagnosi
+
+Aggiornamento del primo tentativo: eseguito, risultato applicativo 503. Login,
+upload e recupero dell'originale verificati; file sintetico conservato. La lettura
+amministrativa della chat tecnica conferma allegato e messaggio assistente vuoto,
+done=false. Nessuna risposta finale o ragionamento e stato stampato.
+
+Open WebUI v0.13.4 controlla anche i modelli base nella catena del profilo
+(utils/access_control/__init__.py, has_base_model_access). Il profilo base Qwen
+esisteva senza access grants; il servizio non ne era proprietario e non aveva
+accesso. E stato aggiunto un unico grant read per Jarvis App tramite
+POST /api/v1/models/model/access/update, dopo rilettura dello stato e controllo
+di modifiche concorrenti. Rilettura successiva: grant esatto presente, parametri,
+meta e versione del modello base invariati, parametri/versione jarvis invariati,
+ruolo user invariato. Non sono stati assegnati scrittura o accesso pubblico.
+Il retry deve ancora verificare che questa correzione risolva il 503 osservato.
+
+Snapshot dei soli permessi precedenti e identificatore del grant aggiunto salvati
+localmente in una directory temporanea ignorata da git, senza chiave API.
+Revoca: rimuovere esclusivamente il grant read per Jarvis App dal modello
+qwen3.8:27b, preservando eventuali nuovi grant. Nessuna revoca eseguita ora.
+Il probe aggiornato controlla in sola lettura ogni modello base, con limite di
+otto passaggi e rifiuto di cicli, ID discordanti o permessi mancanti. Nessuna
+modifica al codice applicativo dell'immagine gia collaudata e necessaria.
 
 scripts/smoke_analysis.py viene eseguito interattivamente nel nuovo container.
 Usa le credenziali dell'applicazione soltanto in memoria, una famiglia con owner

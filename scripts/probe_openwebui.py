@@ -14,6 +14,22 @@ from jarvis.documents.openwebui import OpenWebUIDocumentAnalyzer, _Client
 TOOLS = ("jarvis_decimal_calculator", "jarvis_schedule_planner", "jarvis_original_pdf")
 
 
+def check_base_access(client, profile):
+    seen = {profile.get("id")}
+    base_id = profile.get("base_model_id")
+    hops = 0
+    while base_id:
+        if not isinstance(base_id, str) or base_id in seen or hops >= 8:
+            raise AnalysisUnavailableError("Invalid base model chain")
+        seen.add(base_id)
+        base = client.request("GET", "/api/v1/models/model?id=" + quote(base_id, safe=""))
+        if base.get("id") != base_id or base.get("is_active") is False:
+            raise AnalysisUnavailableError("Base model is unavailable")
+        base_id = base.get("base_model_id")
+        hops += 1
+    return hops
+
+
 def probe(settings: Settings) -> dict:
     result: dict = {
         "mode": "read_only",
@@ -67,6 +83,10 @@ def probe(settings: Settings) -> dict:
             result["profile_policy"] = True
         except AnalysisUnavailableError:
             result["profile_policy"] = False
+        phase = "base_model_chain"
+        result["base_model_chain_accessible"] = False
+        result["base_model_hops"] = check_base_access(client, profile)
+        result["base_model_chain_accessible"] = True
         result["tools_accessible"] = {}
         for tool_id in TOOLS:
             phase = tool_id
@@ -78,6 +98,7 @@ def probe(settings: Settings) -> dict:
                 "profile_identity",
                 "profile_policy",
                 "profile_tools_complete",
+                "base_model_chain_accessible",
             )
         ) and (result["context_65536"] is True or (hidden and pinned))
         result["ok"] = result["ok"] and all(result["tools_accessible"].values())

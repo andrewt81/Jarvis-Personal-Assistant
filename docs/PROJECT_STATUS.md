@@ -18,6 +18,13 @@ Open WebUI configurata, senza porte pubblicate e con Traefik disabilitato.
 L'API amministrativa conferma inoltre ruolo user
 per l'unico account chiamato Jarvis App (non identifica la chiave salvata).
 Evidenza: docs/validation/2026-11-24-openwebui-candidate.json.
+
+Il primo tentativo AI ha restituito 503 dopo login, upload e verifica originale
+riusciti. La chat Open WebUI e stata creata ma e rimasta priva di risposta finale.
+Verificato un permesso mancante sul modello base qwen3.8:27b: accesso in lettura
+aggiunto al solo utente tecnico e riletto, senza cambiare parametri, versioni o
+ruolo. La ripetizione deve ancora confermare l'esito dell'analisi. Il documento
+sintetico fallito e conservato; nessun originale reale e stato modificato.
 Dettagli e ripristino: docs/ULTRON_INTEGRATION.md.
 
 ## Ripresa del 20 novembre: applicazione e inferenza separate

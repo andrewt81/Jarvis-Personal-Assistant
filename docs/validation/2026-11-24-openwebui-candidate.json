@@ -33,6 +33,35 @@
     "saved_service_key_identity_matched_by_admin": false
   },
   "live_llm_analysis_verified": false,
+  "first_live_analysis_attempt": {
+    "login": true,
+    "synthetic_document_uploaded": true,
+    "original_content_and_hash_verified": true,
+    "anonymous_analysis_blocked": true,
+    "wrong_household_hidden": true,
+    "missing_document_hidden": true,
+    "analysis_http_status": 503,
+    "synthetic_document_retained": true,
+    "logout": true,
+    "upstream_chat_created": true,
+    "upstream_assistant_done": false,
+    "upstream_final_content_characters": 0
+  },
+  "base_model_access_fix": {
+    "missing_base_permission_verified": true,
+    "model_id": "qwen3.8:27b",
+    "principal": "dedicated_service_user_only",
+    "permission": "read",
+    "grant_verified_by_admin_api_reread": true,
+    "base_params_preserved": true,
+    "base_meta_preserved": true,
+    "base_version_preserved": true,
+    "jarvis_params_preserved": true,
+    "jarvis_version_preserved": true,
+    "service_role_user_preserved": true,
+    "rollback_snapshot_saved_locally": true,
+    "retry_result": "pending"
+  },
   "ai_enabled_application_started": true,
   "ai_enabled_container": "jarvis-backend-ai-pilot",
   "ai_enabled_readiness": {
