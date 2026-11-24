@@ -15,16 +15,17 @@ TOOLS = ("jarvis_decimal_calculator", "jarvis_schedule_planner", "jarvis_origina
 
 
 def probe(settings: Settings) -> dict:
-    result: dict = {"mode": "read_only", "ok": False}
+    result: dict = {
+        "mode": "read_only",
+        "ok": False,
+        "account_role": "not_verified_by_api",
+    }
     phase = "credentials"
     client = None
     try:
         client = _Client(settings, time.monotonic() + 60)
-        phase = "account"
-        account = client.request("GET", "/api/v1/auths/")
-        result["non_admin_user"] = account.get("role") == "user"
-        if not result["non_admin_user"]:
-            return result
+        # v0.13.4 /auths/ requires a human session and rejects valid API keys.
+        # Resource access below verifies this key, but cannot establish its role.
         phase = "profile"
         profile = client.request(
             "GET", "/api/v1/models/model?id=" + quote(settings.openwebui_model, safe="")
