@@ -32,7 +32,33 @@
     "service_account_role_user": true,
     "saved_service_key_identity_matched_by_admin": false
   },
-  "live_llm_analysis_verified": false,
+  "live_llm_analysis_verified": true,
+  "live_llm_verified_scope": "one_new_synthetic_text_document",
+  "successful_text_analysis": {
+    "ok": true,
+    "analysis_http_status": 200,
+    "analysis_completed_and_document_verified": true,
+    "original_content_and_hash_verified": true,
+    "marker_source_verified": true,
+    "deadline_source_verified": true,
+    "deadline_value_verified": true,
+    "missing_information_reported": true,
+    "persisted_analysis_verified": true,
+    "unchanged_document_cached_result_verified": true,
+    "anonymous_analysis_blocked": true,
+    "anonymous_stored_analysis_blocked": true,
+    "stored_analysis_wrong_household_hidden": true,
+    "wrong_household_hidden": true,
+    "missing_document_hidden": true,
+    "synthetic_document_removed_from_app": true,
+    "synthetic_document_retained": false,
+    "logout": true,
+    "session_revoked": true,
+    "openwebui_copy_cleanup_verified": false,
+    "physical_s3_purge_verified": false
+  },
+  "pdf_end_to_end_verified": false,
+  "two_real_users_isolation_verified": false,
   "first_live_analysis_attempt": {
     "login": true,
     "synthetic_document_uploaded": true,
@@ -60,7 +86,7 @@
     "jarvis_version_preserved": true,
     "service_role_user_preserved": true,
     "rollback_snapshot_saved_locally": true,
-    "retry_result": "pending"
+    "retry_result": "PASS"
   },
   "ai_enabled_application_started": true,
   "ai_enabled_container": "jarvis-backend-ai-pilot",

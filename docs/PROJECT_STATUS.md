@@ -12,7 +12,7 @@ riconfermato think booleano true, contesto 65536 e versione
 La correzione candidata accetta parametri nascosti soltanto per quella versione
 esplicitamente attestata nella configurazione. Il collaudo Linux della nuova
 immagine ha superato 92 test (uno saltato); il probe con chiave dedicata e pin
-restituisce ok=true. Analisi LLM con account dedicato ancora pendente; il pilota
+restituisce ok=true. Prima analisi LLM di un TXT sintetico riuscita; il pilota
 precedente resta AI disabled. Il nuovo jarvis-backend-ai-pilot e pronto, con AI
 Open WebUI configurata, senza porte pubblicate e con Traefik disabilitato.
 L'API amministrativa conferma inoltre ruolo user
@@ -23,8 +23,12 @@ Il primo tentativo AI ha restituito 503 dopo login, upload e verifica originale
 riusciti. La chat Open WebUI e stata creata ma e rimasta priva di risposta finale.
 Verificato un permesso mancante sul modello base qwen3.8:27b: accesso in lettura
 aggiunto al solo utente tecnico e riletto, senza cambiare parametri, versioni o
-ruolo. La ripetizione deve ancora confermare l'esito dell'analisi. Il documento
-sintetico fallito e conservato; nessun originale reale e stato modificato.
+ruolo. La ripetizione ha restituito 200: codice/scadenza e fonti, dati mancanti,
+persistenza, cache sullo stesso originale, blocco anonimo e famiglia errata,
+logout/revoca verificati. Il secondo TXT sintetico e stato rimosso dall'app;
+quello del tentativo fallito resta conservato. Nessun originale reale modificato.
+Copie Open WebUI e purge fisico S3 non verificati. Ora si prepara il medesimo
+collaudo su PDF sintetico; isolamento con due utenti reali ancora da provare.
 Dettagli e ripristino: docs/ULTRON_INTEGRATION.md.
 
 ## Ripresa del 20 novembre: applicazione e inferenza separate

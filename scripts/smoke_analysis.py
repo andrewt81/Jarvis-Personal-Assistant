@@ -6,6 +6,7 @@ model reasoning or document analysis. Failed runs retain their synthetic documen
 
 from __future__ import annotations
 
+import argparse
 import getpass
 import hashlib
 import json
@@ -58,7 +59,39 @@ def call(method, route, token="", payload=None, *, timeout=15):
     return code, json.loads(body) if body else None
 
 
-def run(email, password, result):
+def synthetic_pdf(text):
+    """One-page ASCII PDF fixture, without adding a runtime PDF dependency."""
+    lines = [
+        line.replace("\\", "\\\\").replace("(", "\\(").replace(")", "\\)")
+        for line in text.splitlines()
+    ]
+    stream = (
+        "BT /F1 11 Tf 48 790 Td 16 TL\n" + "\n".join(f"({line}) Tj T*" for line in lines) + "\nET"
+    ).encode("ascii")
+    objects = [
+        b"<< /Type /Catalog /Pages 2 0 R >>",
+        b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+        b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] "
+        b"/Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>",
+        b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+        f"<< /Length {len(stream)} >>\nstream\n".encode() + stream + b"\nendstream",
+    ]
+    data = bytearray(b"%PDF-1.4\n")
+    offsets = [0]
+    for number, obj in enumerate(objects, 1):
+        offsets.append(len(data))
+        data.extend(f"{number} 0 obj\n".encode() + obj + b"\nendobj\n")
+    xref = len(data)
+    data.extend(f"xref\n0 {len(offsets)}\n0000000000 65535 f \n".encode())
+    for offset in offsets[1:]:
+        data.extend(f"{offset:010d} 00000 n \n".encode())
+    data.extend(
+        f"trailer\n<< /Size {len(offsets)} /Root 1 0 R >>\nstartxref\n{xref}\n%%EOF\n".encode()
+    )
+    return bytes(data)
+
+
+def run(email, password, result, *, pdf=False):
     code, pair = call("POST", "/api/v1/auth/login", payload={"email": email, "password": password})
     require(code == 200 and isinstance(pair, dict), "login_failed")
     token = pair.get("access_token")
@@ -75,17 +108,20 @@ def run(email, password, result):
         require(code == 200 and isinstance(previous, list), "document_list_failed")
         previous_ids = {item["id"] for item in previous}
         marker = "PILOTA-" + uuid4().hex
-        filename = "jarvis-synthetic-analysis-" + marker + ".txt"
-        content = (
+        filename = "jarvis-synthetic-analysis-" + marker + (".pdf" if pdf else ".txt")
+        text = (
             "DOCUMENTO SINTETICO DI COLLAUDO. Nessuna pratica reale.\n"
             f"Codice pratica: {marker}\n"
             "Oggetto: restituzione del modulo di prova compilato.\n"
             "Scadenza per restituire il modulo: 30 novembre 2026.\n"
             "Destinatario: non indicato.\nCosto: non indicato.\n"
-        ).encode()
+        )
+        content = synthetic_pdf(text) if pdf else text.encode()
+        media_type = "application/pdf" if pdf else "text/plain"
+        result["document_media_type"] = media_type
         digest = hashlib.sha256(content).hexdigest()
         code, raw = request(
-            "POST", route, token, content, {"Content-Type": "text/plain", "X-Filename": filename}
+            "POST", route, token, content, {"Content-Type": media_type, "X-Filename": filename}
         )
         require(code == 201, "synthetic_upload_failed")
         document = json.loads(raw)
@@ -188,11 +224,14 @@ def run(email, password, result):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--pdf", action="store_true", help="Use a one-page synthetic PDF")
+    arguments = parser.parse_args()
     result = {"ok": False, "synthetic_only": True}
     try:
         email = input("Email applicazione Jarvis: ").strip()
         password = getpass.getpass("Password applicazione Jarvis: ")
-        run(email, password, result)
+        run(email, password, result, pdf=arguments.pdf)
         result["ok"] = True
     except Failure as error:
         result["error"] = str(error)

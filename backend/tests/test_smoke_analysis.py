@@ -47,6 +47,12 @@ class App:
             return reply(200, [{"id": self.document}] if self.failure == "old_id" else [])
         if route == base and method == "POST":
             self.content = data
+            if headers["Content-Type"] == "application/pdf":
+                assert headers["X-Filename"].endswith(".pdf")
+                assert data.startswith(b"%PDF-1.4")
+            else:
+                assert headers["Content-Type"] == "text/plain"
+                assert headers["X-Filename"].endswith(".txt")
             return reply(
                 201,
                 {
@@ -79,7 +85,9 @@ class App:
             if self.analysis is not None:
                 return reply(200, {} if self.failure == "cache" else self.analysis)
             assert timeout > 3600
-            marker = self.content.decode().split("Codice pratica: ")[1].splitlines()[0]
+            marker = (
+                self.content.decode().split("Codice pratica: ")[1].splitlines()[0].split(") Tj")[0]
+            )
             self.analysis = {
                 "id": str(uuid4()),
                 "document_id": self.document,
@@ -101,12 +109,15 @@ class App:
     "failure",
     [None, "old_id", "bad_metadata", "cleanup_content", "provider", "timeout", "cache", "source"],
 )
-def test_synthetic_analysis_cleanup_is_limited_and_failure_retains_document(monkeypatch, failure):
+@pytest.mark.parametrize("pdf", [False, True])
+def test_synthetic_analysis_cleanup_is_limited_and_failure_retains_document(
+    monkeypatch, failure, pdf
+):
     app = App(failure)
     monkeypatch.setattr(smoke, "request", app.request)
     result = {}
     if failure is None:
-        smoke.run("private-email", "private-password", result)
+        smoke.run("private-email", "private-password", result, pdf=pdf)
         assert app.deleted
         assert result["synthetic_document_retained"] is False
         assert result["session_revoked"]
@@ -114,7 +125,7 @@ def test_synthetic_analysis_cleanup_is_limited_and_failure_retains_document(monk
         assert result["unchanged_document_cached_result_verified"]
     else:
         with pytest.raises((smoke.Failure, TimeoutError)):
-            smoke.run("private-email", "private-password", result)
+            smoke.run("private-email", "private-password", result, pdf=pdf)
         assert not app.deleted
     assert app.logged_out
     assert "private-token" not in repr(result)
