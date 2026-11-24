@@ -31,11 +31,33 @@ def probe(settings: Settings) -> dict:
             "GET", "/api/v1/models/model?id=" + quote(settings.openwebui_model, safe="")
         )
         result["profile_identity"] = profile.get("id") == settings.openwebui_model
-        OpenWebUIDocumentAnalyzer._check_profile(profile)
-        result["profile_policy"] = True
-        result["reasoning_boolean_true"] = profile["params"].get("think") is True
-        result["context_65536"] = profile["params"].get("num_ctx") == 65536
-        result["profile_tools_complete"] = set(profile["meta"].get("toolIds", [])) == set(TOOLS)
+        params, meta = profile.get("params"), profile.get("meta")
+        result["params_object"] = isinstance(params, dict)
+        result["meta_object"] = isinstance(meta, dict)
+        params = params if isinstance(params, dict) else {}
+        meta = meta if isinstance(meta, dict) else {}
+        tool_ids = meta.get("toolIds")
+        valid_tool_list = isinstance(tool_ids, list) and all(
+            isinstance(tool, str) for tool in tool_ids
+        )
+        result["reasoning_boolean_true"] = params.get("think") is True
+        result["reasoning_value_type"] = type(params.get("think")).__name__
+        result["context_65536"] = params.get("num_ctx") == 65536
+        result["profile_not_disabled"] = profile.get("is_active") is not False
+        result["tools_list_valid"] = valid_tool_list
+        result["profile_tools_present"] = {
+            tool: valid_tool_list and tool in tool_ids for tool in TOOLS
+        }
+        result["only_allowed_tools"] = valid_tool_list and all(tool in TOOLS for tool in tool_ids)
+        result["no_profile_knowledge"] = not bool(meta.get("knowledge"))
+        result["no_profile_filters"] = not bool(meta.get("filterIds"))
+        result["native_calling_compatible"] = params.get("function_calling") in (None, "native")
+        result["profile_tools_complete"] = valid_tool_list and set(tool_ids) == set(TOOLS)
+        try:
+            OpenWebUIDocumentAnalyzer._check_profile(profile)
+            result["profile_policy"] = True
+        except AnalysisUnavailableError:
+            result["profile_policy"] = False
         result["tools_accessible"] = {}
         for tool_id in TOOLS:
             phase = tool_id
