@@ -6,12 +6,14 @@ Ultimo aggiornamento: 25 novembre 2026.
 
 Implementato un incremento candidato con originali immutabili collegati, If-Match,
 risoluzione della revisione corrente e rifiuto delle analisi superate. Migrazione
-aggiuntiva 20261125_0007 preparata ma NON applicata; piloti esistenti invariati.
+aggiuntiva 20261125_0007 applicata e verificata sul database di Edith; piloti
+esistenti non riavviati.
 Lint/formattazione/compilazione e 110 test locali mirati superati. Il collaudo
 Linux del commit d9518bb6ba990aeefd79fa6edb7e32b7783403de ha restituito
-CANDIDATE_CHECKS=PASS (conteggi non forniti dall'operatore). Migrazione e avvio
-del nuovo pilota ancora pendenti. Preparato un helper di migrazione con guardie
-su destinazione, TLS, schema e versione; sei casi locali passati.
+CANDIDATE_CHECKS=PASS (conteggi non forniti dall'operatore). L'helper ha verificato
+passaggio 0006 -> 0007 e vincoli, con guardie su destinazione, TLS, schema e
+versione; sei casi locali passati. Avvio del nuovo pilota e collaudo degli endpoint
+revisioni con storage reale ancora pendenti.
 Evidenza: docs/validation/2026-11-25-revisions-candidate.json.
 Contratto, limiti e ripristino: docs/DOCUMENT_REVISIONS.md.
 

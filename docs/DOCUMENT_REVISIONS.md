@@ -3,9 +3,10 @@
 25 novembre 2026. Immagine candidata costruita e collaudata sul server con
 CANDIDATE_CHECKS=PASS, commit d9518bb6ba990aeefd79fa6edb7e32b7783403de. I conteggi
 pytest non sono stati forniti e non vengono dedotti. Implementazione non ancora
-avviata come applicazione; migrazione non ancora applicata.
-Il pilota corrente resta jarvis-backend:pilot-5b8e977 e il database verificato
-resta alla revisione 20261022_0006. Nessuna migrazione eseguita da questo incremento.
+avviata come applicazione. La migrazione aggiuntiva e stata applicata dal comando
+eseguito dall'operatore sulla VM Jarvis: 20261022_0006 -> 20261125_0007, vincoli
+verificati, ok=true. Nessun container applicativo riavviato. Il pilota AI corrente
+resta jarvis-backend:pilot-5b8e977; avvio del nuovo candidato ancora pendente.
 
 ## Decisione e comportamento
 
@@ -74,13 +75,13 @@ incluse. Non aggirare il 409 cancellando manualmente i collegamenti.
   protezione dalla cancellazione della catena.
 - Quattro test HTTP tramite ASGI e un test DDL PostgreSQL offline inclusi nel
   collaudo Linux riuscito; non erano risultati locali gia verificati.
-- Non ancora verificati sul server migrazione, concorrenza PostgreSQL effettiva,
+- Migrazione sul server verificata; restano concorrenza PostgreSQL effettiva,
   nuovi endpoint con S3 reale e nuova inferenza dopo revisione.
 
 Prima costruire la nuova immagine e usare scripts/validate_image.py nel container
 temporaneo senza credenziali del database (passaggio completato). I piloti esistenti restano attivi.
-Dopo esito verde: leggere alembic current, applicare upgrade head da Jarvis con
-la configurazione PostgreSQL esistente e verificare 20261125_0007 (head). Avviare
+Dopo esito verde: leggere alembic current, applicare upgrade da Jarvis con
+la configurazione PostgreSQL esistente e verificare 20261125_0007 (completato). Avviare
 un nuovo pilota interno distinto e provare solo revisioni sintetiche. Non fare
 deployment pubblico o migrazioni sulla VM Ultron.
 
@@ -91,7 +92,8 @@ transazioni read-only. Solo stato 0006 senza tabella revisioni consente upgrade;
 0007 gia applicato esegue soltanto la verifica. Altri stati interrompono il flusso.
 Dopo il comando Alembic verifica revisione e nomi dei sei vincoli attesi. Gli
 errori grezzi del database non vengono stampati. Sei casi locali del controllo
-sono passati; l'helper non e ancora stato eseguito contro il server.
+sono passati; l'helper e stato eseguito contro il server e ha restituito ok=true,
+revision_after=20261125_0007 e revision_constraints_verified=true.
 
 ## Ripristino
 
