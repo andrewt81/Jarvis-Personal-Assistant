@@ -1,6 +1,9 @@
 # Revisioni immutabili dei documenti
 
-25 novembre 2026. Implementazione candidata, non ancora installata sul server.
+25 novembre 2026. Immagine candidata costruita e collaudata sul server con
+CANDIDATE_CHECKS=PASS, commit d9518bb6ba990aeefd79fa6edb7e32b7783403de. I conteggi
+pytest non sono stati forniti e non vengono dedotti. Implementazione non ancora
+avviata come applicazione; migrazione non ancora applicata.
 Il pilota corrente resta jarvis-backend:pilot-5b8e977 e il database verificato
 resta alla revisione 20261022_0006. Nessuna migrazione eseguita da questo incremento.
 
@@ -69,17 +72,26 @@ incluse. Non aggirare il 409 cancellando manualmente i collegamenti.
   conservazione degli originali, invalidazione corrente, idempotenza, conflitti,
   esito commit ambiguo, modifica durante inferenza/cache, hash errato, ruoli e
   protezione dalla cancellazione della catena.
-- Aggiunti quattro test HTTP tramite ASGI e un test DDL PostgreSQL offline.
-  Sono da eseguire nel collaudo Linux: non sono risultati locali gia verificati.
+- Quattro test HTTP tramite ASGI e un test DDL PostgreSQL offline inclusi nel
+  collaudo Linux riuscito; non erano risultati locali gia verificati.
 - Non ancora verificati sul server migrazione, concorrenza PostgreSQL effettiva,
   nuovi endpoint con S3 reale e nuova inferenza dopo revisione.
 
 Prima costruire la nuova immagine e usare scripts/validate_image.py nel container
-temporaneo senza credenziali del database. I piloti esistenti restano attivi.
+temporaneo senza credenziali del database (passaggio completato). I piloti esistenti restano attivi.
 Dopo esito verde: leggere alembic current, applicare upgrade head da Jarvis con
 la configurazione PostgreSQL esistente e verificare 20261125_0007 (head). Avviare
 un nuovo pilota interno distinto e provare solo revisioni sintetiche. Non fare
 deployment pubblico o migrazioni sulla VM Ultron.
+
+scripts/migrate_document_revisions.py prepara questo passaggio senza accesso a
+S3 o AI. Richiede la destinazione Edith gia verificata, database jarvis, ruolo
+jarvis_app, public e TLS require effettivo. Le letture preliminari/finali sono in
+transazioni read-only. Solo stato 0006 senza tabella revisioni consente upgrade;
+0007 gia applicato esegue soltanto la verifica. Altri stati interrompono il flusso.
+Dopo il comando Alembic verifica revisione e nomi dei sei vincoli attesi. Gli
+errori grezzi del database non vengono stampati. Sei casi locali del controllo
+sono passati; l'helper non e ancora stato eseguito contro il server.
 
 ## Ripristino
 

@@ -1,0 +1,23 @@
+{
+  "date": "2026-11-25",
+  "evidence_source": "operator_output_from_jarvis",
+  "validated_application_commit": "d9518bb6ba990aeefd79fa6edb7e32b7783403de",
+  "image_tag": "jarvis-backend:revisions-d9518bb",
+  "candidate_checks": "PASS",
+  "pytest_counts": null,
+  "pytest_counts_note": "Only the final CANDIDATE_CHECKS=PASS was supplied; counts are not inferred.",
+  "revision_migration_applied": false,
+  "target_revision": "20261125_0007",
+  "new_revision_pilot_started": false,
+  "live_revision_endpoints_verified": false,
+  "existing_pilots_preserved": true,
+  "production_release": false,
+  "separate_migration_guard": {
+    "status": "prepared_not_executed_on_server",
+    "local_mock_tests_passed": 6,
+    "checks": ["configured_target", "database_identity", "tls", "schema", "starting_revision", "final_revision", "constraint_names"],
+    "allowed_upgrade": "20261022_0006 -> 20261125_0007",
+    "already_applied_behavior": "verify_without_reapplying",
+    "unexpected_state_behavior": "stop_without_schema_mutation"
+  }
+}

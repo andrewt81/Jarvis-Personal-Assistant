@@ -7,8 +7,12 @@ Ultimo aggiornamento: 25 novembre 2026.
 Implementato un incremento candidato con originali immutabili collegati, If-Match,
 risoluzione della revisione corrente e rifiuto delle analisi superate. Migrazione
 aggiuntiva 20261125_0007 preparata ma NON applicata; piloti esistenti invariati.
-Lint/formattazione/compilazione e 110 test locali mirati superati. Test HTTP/DDL
-e suite Linux del nuovo candidato ancora da eseguire, prima di migrare o avviarlo.
+Lint/formattazione/compilazione e 110 test locali mirati superati. Il collaudo
+Linux del commit d9518bb6ba990aeefd79fa6edb7e32b7783403de ha restituito
+CANDIDATE_CHECKS=PASS (conteggi non forniti dall'operatore). Migrazione e avvio
+del nuovo pilota ancora pendenti. Preparato un helper di migrazione con guardie
+su destinazione, TLS, schema e versione; sei casi locali passati.
+Evidenza: docs/validation/2026-11-25-revisions-candidate.json.
 Contratto, limiti e ripristino: docs/DOCUMENT_REVISIONS.md.
 
 ## Collaudo multiutente del 25 novembre
