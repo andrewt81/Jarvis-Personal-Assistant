@@ -1,5 +1,23 @@
 # Applicazione Jarvis e inferenza su Ultron
 
+## Aggiornamento verificato del 25 novembre 2026
+
+Il test con due account temporanei autenticati sull'API reale e riuscito:
+isolamento bidirezionale di documenti e analisi, separazione della cache anche
+con hash uguali, viewer limitato alla lettura e revoca efficace sulla sessione
+ancora autenticata. Le operazioni di grant/revoca sono fixture SQL circoscritte,
+non un nuovo endpoint di gestione utenti. Nessuna nuova inferenza: i risultati
+delle analisi di test erano deterministici e marcati isolation-fixture.
+
+Documenti di questa prova rimossi dall'app, account temporanei disattivati e
+sessioni revocate; identita/nuclei e audit conservati. Gli account personali non
+sono stati modificati. Il manifest rimane nel tmpfs del container temporaneo.
+Dettagli: docs/MULTIUSER_PILOT.md; esito sanitizzato:
+docs/validation/2026-11-25-multiuser-pilot.json. Le prove del 24 novembre sotto
+restano storiche; l'isolamento con due account temporanei non e piu pendente.
+Restano aperti lifecycle copie Open WebUI, purge S3, aggiornamenti/invalidazione,
+ricerca su archivio e uso degli strumenti PDF originali/visivi in questo pilota.
+
 ## Aggiornamento verificato del 24 novembre 2026
 
 La chiave dedicata presente su Jarvis legge il profilo `jarvis` e tutti e tre gli

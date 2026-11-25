@@ -1,7 +1,21 @@
 # Collaudo con due identita temporanee
 
-24 novembre 2026. Script preparato e verificato localmente; prova su server ancora
-da eseguire. TXT e PDF con inferenza hanno gia superato il precedente collaudo.
+25 novembre 2026. Prova SQL/HTTP sul server riuscita, con output dell'operatore
+ok=true. TXT e PDF con inferenza avevano gia superato il precedente collaudo.
+Evidenza: docs/validation/2026-11-25-multiuser-pilot.json.
+
+## Esito verificato sul pilota
+
+Due account temporanei sono stati autenticati sull'API reale. Accessi incrociati
+bloccati in entrambe le direzioni, analisi memorizzate separate anche con hash
+identici, grant viewer con lettura consentita e scrittura negata, revoca efficace
+sulla sessione ancora valida: tutti i controlli sono passati. Nessuna inferenza
+nuova richiesta: questa prova usa risultati sintetici deterministici nella cache.
+
+Documenti sintetici rimossi dall'applicazione; logout, revoca delle sessioni e
+disattivazione dei due account verificati. Identita, nuclei e audit rimangono per
+tracciabilita; manifest conservato nel tmpfs del container. Gli account personali
+esistenti non sono stati usati o modificati dal test. Nessun rilascio di produzione.
 
 ## Ambito
 
@@ -23,7 +37,7 @@ senza altre inferenze, l'helper inserisce due risultati deterministici marcati
 isolation-fixture nei soli nuovi documenti, dopo verifica di proprieta e hash.
 Non e una prova di qualita AI o di due identita personali reali gia esistenti.
 
-## Verifiche previste
+## Verifiche eseguite
 
 - Ogni login corrisponde al proprio nuovo account.
 - Ogni account legge originale e analisi del proprio documento; POST analysis
@@ -68,7 +82,7 @@ Undici casi simulati verificano successo, lettura incrociata erroneamente
 consentita, cache condivisa per hash, viewer con scrittura, revoca non applicata,
 contenuto diverso prima della pulizia, rifiuto di identita discordanti,
 disattivazione dopo timeout e modalita di recupero. Non sostituiscono il collaudo
-SQL/HTTP sul server. La suite mirata complessiva restituisce 98 passed; lint e
+SQL/HTTP sul server, ora anch'esso superato come riportato sopra. La suite mirata complessiva restituisce 98 passed; lint e
 formattazione verificati. Il precedente risultato Linux resta 92 passed / 1
 skipped sul codice applicativo dell'immagine: non e un risultato Linux di questo
 nuovo helper.
@@ -76,4 +90,4 @@ nuovo helper.
 Questo collaudo non prova isolamento delle copie conservate dall'account tecnico
 Open WebUI, sostituzione di documenti, invalidazione dell'analisi, ricerca su
 archivi, strumenti PDF visivi o purge fisico delle versioni S3. Questi limiti
-restano espliciti anche se il test di autorizzazione riesce.
+restano espliciti dopo il successo del test di autorizzazione.

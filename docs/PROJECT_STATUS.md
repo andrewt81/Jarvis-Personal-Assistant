@@ -1,6 +1,21 @@
 # Jarvis Personal Assistant - stato, decisioni e roadmap
 
-Ultimo aggiornamento: 24 novembre 2026.
+Ultimo aggiornamento: 25 novembre 2026.
+
+## Collaudo multiutente del 25 novembre
+
+Superata la prova con due account temporanei autenticati sul backend reale:
+letture/analisi incrociate negate, cache separata anche con hash identici, viewer
+limitato alla lettura e revoca efficace sulla sessione gia aperta. Logout,
+revoca sessioni e disattivazione account di test confermati. Documenti sintetici
+rimossi dall'app; identita e audit mantenuti. Nessuna nuova inferenza richiesta:
+la prova usa analisi sintetiche deterministiche, distinte dai precedenti test AI.
+Gli account personali esistenti non sono stati modificati.
+
+Restano aperti aggiornamento dei documenti e invalidazione delle analisi, lifecycle e separazione
+delle copie Open WebUI, purge fisico S3, ricerca nell'archivio e verifica degli
+strumenti originali/visivi PDF in questo pilota. Il servizio resta interno.
+Evidenza: docs/validation/2026-11-25-multiuser-pilot.json.
 
 ## Verifica del collegamento Open WebUI del 24 novembre
 
@@ -31,13 +46,13 @@ Anche il PDF sintetico ha restituito 200, con gli stessi controlli su fonti,
 identita, persistenza/cache, dati mancanti e accessi superati, poi rimozione
 dall'applicazione verificata. Il flusso iniziale e collaudato sui documenti
 caricati nell'app, senza attestare ricerca nell'archivio o accesso indiscriminato.
-Copie Open WebUI, purge fisico S3, isolamento con due utenti reali, sostituzione
+Copie Open WebUI, purge fisico S3, sostituzione
 del documento e invalidazione dell'analisi restano da verificare. L'uso effettivo
 degli strumenti di lettura/render PDF non e dimostrato da questo solo risultato.
 Il servizio resta un pilota interno temporaneo, non un rilascio di produzione.
-Preparato il successivo collaudo con due account temporanei sull'API reale,
-nuclei distinti, hash identici e grant/revoca viewer sulla sessione
-esistente. Nessuna prova server ancora effettuata per questo incremento.
+Il successivo collaudo con due account temporanei sull'API reale, nuclei
+distinti, hash identici e grant/revoca viewer e stato superato il 25 novembre,
+come riportato sopra.
 Procedura, pulizia e limiti: docs/MULTIUSER_PILOT.md.
 Dettagli e ripristino: docs/ULTRON_INTEGRATION.md.
 
