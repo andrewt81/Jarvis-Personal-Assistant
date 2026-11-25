@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from datetime import datetime
 from typing import Annotated
 from urllib.parse import quote
@@ -14,7 +15,11 @@ from jarvis.documents.analysis import AnalysisUnavailableError
 from jarvis.documents.models import Document, DocumentAnalysis
 from jarvis.documents.service import (
     MAX_DOCUMENT_BYTES,
+    DocumentIntegrityError,
     DocumentNotFoundError,
+    DocumentPreconditionFailed,
+    DocumentRevisionConflict,
+    DocumentRevisionUnavailable,
     DocumentService,
     InvalidDocumentError,
 )
@@ -49,6 +54,7 @@ class DeadlineResponse(BaseModel):
 class DocumentAnalysisResponse(BaseModel):
     id: UUID
     document_id: UUID
+    source_sha256: str
     document_type: str
     summary: str
     facts: list[FactResponse]
@@ -83,6 +89,7 @@ def _analysis_response(analysis: DocumentAnalysis) -> DocumentAnalysisResponse:
     return DocumentAnalysisResponse(
         id=analysis.id,
         document_id=analysis.document_id,
+        source_sha256=analysis.source_sha256.hex(),
         document_type=analysis.document_type,
         summary=analysis.summary,
         facts=[
@@ -114,12 +121,42 @@ def _translate(error: Exception) -> HTTPException:
         return HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions"
         )
+    if isinstance(error, DocumentPreconditionFailed):
+        return HTTPException(status_code=412, detail="Original hash does not match If-Match")
+    if isinstance(error, DocumentRevisionConflict):
+        return HTTPException(
+            status_code=409, detail="Document revision conflict; resolve current revision"
+        )
+    if isinstance(error, DocumentIntegrityError):
+        return HTTPException(status_code=409, detail="Original failed integrity verification")
+    if isinstance(error, DocumentRevisionUnavailable):
+        return HTTPException(
+            status_code=503, detail="Document revision is unavailable; resolve current revision"
+        )
     if isinstance(error, AnalysisUnavailableError):
         return HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Document analysis is unavailable",
         )
     return HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_CONTENT, detail=str(error))
+
+
+async def _upload_body(request: Request) -> bytes:
+    content = bytearray()
+    async for chunk in request.stream():
+        if len(content) + len(chunk) > MAX_DOCUMENT_BYTES:
+            raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
+        content.extend(chunk)
+    return bytes(content)
+
+
+def _if_match(value: str | None) -> bytes:
+    if value is None:
+        raise HTTPException(status_code=428, detail="If-Match original SHA-256 ETag is required")
+    match = re.fullmatch(r'"([0-9a-fA-F]{64})"', value)
+    if match is None:
+        raise HTTPException(status_code=422, detail="If-Match must be one quoted SHA-256 ETag")
+    return bytes.fromhex(match[1])
 
 
 @router.get("", response_model=list[DocumentResponse])
@@ -143,10 +180,7 @@ async def upload_document(
     filename: Annotated[str, Header(alias="X-Filename")],
     person_id: Annotated[UUID | None, Header(alias="X-Person-Id")] = None,
 ) -> DocumentResponse:
-    content_length = request.headers.get("content-length")
-    if content_length is not None and int(content_length) > MAX_DOCUMENT_BYTES:
-        raise HTTPException(status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE)
-    content = await request.body()
+    content = await _upload_body(request)
     try:
         value = await _service(request).upload(
             user.id,
@@ -163,6 +197,74 @@ async def upload_document(
     return _response(value)
 
 
+@router.post("/{document_id}/revisions", response_model=DocumentResponse)
+async def create_document_revision(
+    household_id: UUID,
+    document_id: UUID,
+    request: Request,
+    response: Response,
+    user: Annotated[AuthenticatedUser, Depends(current_user)],
+    filename: Annotated[str, Header(alias="X-Filename")],
+    if_match: Annotated[str | None, Header(alias="If-Match")] = None,
+) -> DocumentResponse:
+    expected = _if_match(if_match)
+    content = await _upload_body(request)
+    try:
+        value = await _service(request).create_revision(
+            user.id,
+            household_id,
+            document_id,
+            expected_sha256=expected,
+            filename=filename,
+            media_type=request.headers.get("content-type", "application/octet-stream").split(";")[
+                0
+            ],
+            content=content,
+        )
+    except (
+        HouseholdNotFoundError,
+        HouseholdPermissionError,
+        DocumentNotFoundError,
+        DocumentPreconditionFailed,
+        DocumentRevisionConflict,
+        DocumentRevisionUnavailable,
+        InvalidDocumentError,
+    ) as error:
+        raise _translate(error) from error
+    response.headers["ETag"] = '"' + value.sha256.hex() + '"'
+    return _response(value)
+
+
+@router.get("/{document_id}/revisions/current", response_model=DocumentResponse)
+async def current_document_revision(
+    household_id: UUID,
+    document_id: UUID,
+    request: Request,
+    response: Response,
+    user: Annotated[AuthenticatedUser, Depends(current_user)],
+) -> DocumentResponse:
+    try:
+        value = await _service(request).current_revision(user.id, household_id, document_id)
+    except (HouseholdNotFoundError, DocumentNotFoundError) as error:
+        raise _translate(error) from error
+    response.headers["ETag"] = '"' + value.sha256.hex() + '"'
+    return _response(value)
+
+
+@router.get("/{document_id}/revisions", response_model=list[DocumentResponse])
+async def list_document_revisions(
+    household_id: UUID,
+    document_id: UUID,
+    request: Request,
+    user: Annotated[AuthenticatedUser, Depends(current_user)],
+) -> list[DocumentResponse]:
+    try:
+        values = await _service(request).revisions(user.id, household_id, document_id)
+    except (HouseholdNotFoundError, DocumentNotFoundError) as error:
+        raise _translate(error) from error
+    return [_response(value) for value in values]
+
+
 @router.post("/{document_id}/analysis", response_model=DocumentAnalysisResponse)
 async def analyze_document(
     household_id: UUID,
@@ -177,6 +279,8 @@ async def analyze_document(
         HouseholdPermissionError,
         DocumentNotFoundError,
         AnalysisUnavailableError,
+        DocumentRevisionConflict,
+        DocumentIntegrityError,
     ) as error:
         raise _translate(error) from error
     return _analysis_response(value)
@@ -195,6 +299,7 @@ async def latest_document_analysis(
         HouseholdNotFoundError,
         DocumentNotFoundError,
         AnalysisUnavailableError,
+        DocumentRevisionConflict,
     ) as error:
         raise _translate(error) from error
     return _analysis_response(value)
@@ -209,7 +314,7 @@ async def download_document(
 ) -> Response:
     try:
         document, content = await _service(request).download(user.id, household_id, document_id)
-    except (HouseholdNotFoundError, DocumentNotFoundError) as error:
+    except (HouseholdNotFoundError, DocumentNotFoundError, DocumentIntegrityError) as error:
         raise _translate(error) from error
     disposition = f"attachment; filename*=UTF-8''{quote(document.original_filename)}"
     return Response(
@@ -218,6 +323,7 @@ async def download_document(
         headers={
             "Content-Disposition": disposition,
             "X-Content-Type-Options": "nosniff",
+            "ETag": '"' + document.sha256.hex() + '"',
         },
     )
 
@@ -231,6 +337,11 @@ async def delete_document(
 ) -> Response:
     try:
         await _service(request).delete(user.id, household_id, document_id)
-    except (HouseholdNotFoundError, HouseholdPermissionError, DocumentNotFoundError) as error:
+    except (
+        HouseholdNotFoundError,
+        HouseholdPermissionError,
+        DocumentNotFoundError,
+        DocumentRevisionConflict,
+    ) as error:
         raise _translate(error) from error
     return Response(status_code=status.HTTP_204_NO_CONTENT)

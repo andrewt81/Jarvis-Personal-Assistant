@@ -1,6 +1,136 @@
 # Jarvis Personal Assistant - stato, decisioni e roadmap
 
-Ultimo aggiornamento: 22 ottobre 2026.
+Ultimo aggiornamento: 25 novembre 2026.
+
+## Candidato per revisioni documentali
+
+Implementato un incremento candidato con originali immutabili collegati, If-Match,
+risoluzione della revisione corrente e rifiuto delle analisi superate. Migrazione
+aggiuntiva 20261125_0007 applicata e verificata sul database di Edith; piloti
+esistenti non riavviati.
+Lint/formattazione/compilazione e 110 test locali mirati superati. Il collaudo
+Linux del commit d9518bb6ba990aeefd79fa6edb7e32b7783403de ha restituito
+CANDIDATE_CHECKS=PASS (conteggi non forniti dall'operatore). L'helper ha verificato
+passaggio 0006 -> 0007 e vincoli, con guardie su destinazione, TLS, schema e
+versione; sei casi locali passati. Il nuovo jarvis-backend-revisions-pilot e
+avviato e restituisce ready con PostgreSQL e object storage available. Lo smoke
+reale ha verificato precondizioni, un solo successore concorrente (200/409),
+conservazione originali/cronologia, rifiuto dell'analisi superata e isolamento.
+La nuova analisi ha restituito 503: incremento non ancora completamente collaudato.
+Originali sintetici conservati, account di prova disattivati e sessioni revocate.
+Diagnosi in corso senza rilanciare lo smoke o modificare profilo/container.
+Evidenza: docs/validation/2026-11-25-revisions-candidate.json.
+Contratto, limiti e ripristino: docs/DOCUMENT_REVISIONS.md.
+
+## Collaudo multiutente del 25 novembre
+
+Superata la prova con due account temporanei autenticati sul backend reale:
+letture/analisi incrociate negate, cache separata anche con hash identici, viewer
+limitato alla lettura e revoca efficace sulla sessione gia aperta. Logout,
+revoca sessioni e disattivazione account di test confermati. Documenti sintetici
+rimossi dall'app; identita e audit mantenuti. Nessuna nuova inferenza richiesta:
+la prova usa analisi sintetiche deterministiche, distinte dai precedenti test AI.
+Gli account personali esistenti non sono stati modificati.
+
+Restano aperti aggiornamento dei documenti e invalidazione delle analisi, lifecycle e separazione
+delle copie Open WebUI, purge fisico S3, ricerca nell'archivio e verifica degli
+strumenti originali/visivi PDF in questo pilota. Il servizio resta interno.
+Evidenza: docs/validation/2026-11-25-multiuser-pilot.json.
+
+## Verifica del collegamento Open WebUI del 24 novembre
+
+La chiave dedicata legge il profilo e i tre strumenti. I parametri sono nascosti
+agli utenti con sola lettura in Open WebUI 0.13.4: il precedente controllo li
+interpretava erroneamente come mancanti. La lettura amministrativa diretta ha
+riconfermato think booleano true, contesto 65536 e versione
+173da814-b2a7-4aba-9f8a-dc0b1e21ec80, senza modifiche al profilo.
+La correzione candidata accetta parametri nascosti soltanto per quella versione
+esplicitamente attestata nella configurazione. Il collaudo Linux della nuova
+immagine ha superato 92 test (uno saltato); il probe con chiave dedicata e pin
+restituisce ok=true. Analisi LLM di un TXT e di un PDF sintetici riuscite; il pilota
+precedente resta AI disabled. Il nuovo jarvis-backend-ai-pilot e pronto, con AI
+Open WebUI configurata, senza porte pubblicate e con Traefik disabilitato.
+L'API amministrativa conferma inoltre ruolo user
+per l'unico account chiamato Jarvis App (non identifica la chiave salvata).
+Evidenza: docs/validation/2026-11-24-openwebui-candidate.json.
+
+Il primo tentativo AI ha restituito 503 dopo login, upload e verifica originale
+riusciti. La chat Open WebUI e stata creata ma e rimasta priva di risposta finale.
+Verificato un permesso mancante sul modello base qwen3.8:27b: accesso in lettura
+aggiunto al solo utente tecnico e riletto, senza cambiare parametri, versioni o
+ruolo. La ripetizione ha restituito 200: codice/scadenza e fonti, dati mancanti,
+persistenza, cache sullo stesso originale, blocco anonimo e famiglia errata,
+logout/revoca verificati. Il secondo TXT sintetico e stato rimosso dall'app;
+quello del tentativo fallito resta conservato. Nessun originale reale modificato.
+Anche il PDF sintetico ha restituito 200, con gli stessi controlli su fonti,
+identita, persistenza/cache, dati mancanti e accessi superati, poi rimozione
+dall'applicazione verificata. Il flusso iniziale e collaudato sui documenti
+caricati nell'app, senza attestare ricerca nell'archivio o accesso indiscriminato.
+Copie Open WebUI, purge fisico S3, sostituzione
+del documento e invalidazione dell'analisi restano da verificare. L'uso effettivo
+degli strumenti di lettura/render PDF non e dimostrato da questo solo risultato.
+Il servizio resta un pilota interno temporaneo, non un rilascio di produzione.
+Il successivo collaudo con due account temporanei sull'API reale, nuclei
+distinti, hash identici e grant/revoca viewer e stato superato il 25 novembre,
+come riportato sopra.
+Procedura, pulizia e limiti: docs/MULTIUSER_PILOT.md.
+Dettagli e ripristino: docs/ULTRON_INTEGRATION.md.
+
+## Ripresa del 20 novembre: applicazione e inferenza separate
+
+L'host **jarvis** ospitera l'applicazione; l'host **ultron** esegue LLM, Ollama,
+Open WebUI e Docling. `jarvis` e anche il nome del profilo Open WebUI su Ultron.
+L'architettura dati del 22 ottobre resta confermata: PostgreSQL 17 e RustFS su
+**edith**, con database jarvis, utente jarvis_app e bucket jarvis-documents-prod
+dedicati all'applicazione. Nessuna migrazione dei dati sull'host jarvis e prevista.
+La precedente annotazione che escludeva Edith era un'interpretazione errata ed e
+sostituita da questa conferma dell'utente. Esistenza e permessi delle risorse vanno
+verificati prima del primo avvio; non si usano risorse di altre applicazioni.
+
+Su jarvis sono stati verificati tramite output dell'utente Debian 13.7, circa
+8 GiB RAM, Traefik healthy sulla rete proxy e la presenza di /opt/jarvis. Al primo
+inventario nessun container applicativo era avviato. I file sotto /opt/jarvis puntano
+a Edith 10.10.30.20:5432 (TLS require) e 10.10.30.20:9000 (S3 path-style).
+Tailscale e attivo su jarvis, IP 100.79.96.2; HTTP verso Open WebUI su Ultron
+100.127.56.71:3000 verificato dall'host e da Traefik. Autenticazione API Open WebUI
+ancora da verificare; accesso autenticato PostgreSQL e HEAD del bucket verificati.
+
+Il codice locale del ramo feature/ultron-document-analysis aggiunge il provider
+Open WebUI, senza aggiornare il profilo remoto o cambiare i contratti Android.
+Endpoint Tailscale esplicito, allegato singolo, nuova chat per analisi, native
+tool calling, ragionamento booleano attivo e risultato JSON finale validato.
+Nessun fallback cloud. La configurazione di rilascio e candidata e non applicata.
+
+Verifica successiva sul container Linux di Jarvis: immagine preflight-9116880
+costruita dal commit 911688036092399e77f1d1ff1577ee17bcae3de4; preflight ok=true.
+Autenticazione PostgreSQL e TLS effettivo confermati, privilegi sullo schema
+disponibili; HEAD del bucket S3 riuscito. Database senza tabelle applicative e
+senza tabella Alembic. La suite completa Linux sul candidato ha poi restituito
+82 passed, 1 skipped e CANDIDATE_CHECKS=PASS; lint, formattazione e compilazione
+superati. Successivamente l'utente ha applicato le sei migrazioni dall'immagine
+verificata su Jarvis al database jarvis su Edith: alembic current conferma
+20261022_0006 (head). Lettura/scrittura oggetti ancora da verificare; primo
+account e pilota interno predisposti come descritto sotto.
+
+Primo proprietario creato tramite CLI interattiva; nessuna credenziale o identita
+personale viene registrata qui. Container jarvis-backend-pilot avviato sulla rete
+proxy con traefik.enable=false, nessuna porta host, AI disabled. L'endpoint interno
+/health/ready restituisce ready con PostgreSQL e object_storage available. Smoke
+autenticato riuscito: rifiuto anonimo, login, identita, nucleo owner e persona
+collegata, logout e revoca confermati. Smoke documentale riuscito: TXT sintetico
+caricato, hash e byte originali verificati, accessi anonimi respinti, nucleo e
+documento inesistenti nascosti, analisi AI disabilitata e solo file sintetico
+rimosso. Lettura/scrittura via S3 confermata attraverso l'API applicativa;
+isolamento fra due utenti reali e analisi AI live ancora da collaudare.
+
+Configurazione, prove, limiti di conservazione delle copie su Open WebUI, gestione
+dei job lunghi e ripristino sono in [ULTRON_INTEGRATION.md](ULTRON_INTEGRATION.md).
+La baseline locale di partenza e 02edf87 sul ramo develop, confrontata con la
+testa remota dello stesso ramo prima della pubblicazione: coincidono. L'incremento
+e pubblicato nella PR #11 in bozza verso develop. Nessun merge o rilascio
+permanente; l'avvio del solo pilota interno e descritto sopra.
+
+## Stato storico al 22 ottobre 2026
 
 Questo documento raccoglie in un solo punto gli avanzamenti, le idee, le decisioni e i
 prossimi sviluppi. Deve essere aggiornato a ogni modifica funzionale o architetturale

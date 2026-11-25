@@ -19,7 +19,7 @@ from jarvis.auth.rate_limit import AuthenticationRateLimiter
 from jarvis.auth.service import AuthService
 from jarvis.core.config import Settings
 from jarvis.core.logging import configure_logging
-from jarvis.documents.analysis import OpenAIDocumentAnalyzer
+from jarvis.documents.providers import create_document_analyzer
 from jarvis.documents.service import DocumentService
 from jarvis.households.service import HouseholdService
 from jarvis.infrastructure.auth_repository import PostgreSQLAuthRepository
@@ -79,7 +79,7 @@ def create_app(
         PostgreSQLHouseholdRepository(application_settings),
         S3DocumentStorage(application_settings),
         PostgreSQLDocumentAnalysisRepository(application_settings),
-        OpenAIDocumentAnalyzer(application_settings),
+        create_document_analyzer(application_settings),
     )
     application.state.task_service = task_service or TaskService(
         PostgreSQLTaskRepository(application_settings),
