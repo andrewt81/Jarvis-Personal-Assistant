@@ -2,11 +2,13 @@
 
 25 novembre 2026. Immagine candidata costruita e collaudata sul server con
 CANDIDATE_CHECKS=PASS, commit d9518bb6ba990aeefd79fa6edb7e32b7783403de. I conteggi
-pytest non sono stati forniti e non vengono dedotti. Implementazione non ancora
-avviata come applicazione. La migrazione aggiuntiva e stata applicata dal comando
+pytest non sono stati forniti e non vengono dedotti. Implementazione ora
+avviata come applicazione nel nuovo jarvis-backend-revisions-pilot. Readiness
+verificata dall'operatore: ready, PostgreSQL e object storage available.
+La migrazione aggiuntiva e stata applicata dal comando
 eseguito dall'operatore sulla VM Jarvis: 20261022_0006 -> 20261125_0007, vincoli
-verificati, ok=true. Nessun container applicativo riavviato. Il pilota AI corrente
-resta jarvis-backend:pilot-5b8e977; avvio del nuovo candidato ancora pendente.
+verificati, ok=true. I piloti precedenti rimangono attivi; il nuovo usa
+jarvis-backend:revisions-d9518bb senza porte pubblicate o routing Traefik.
 
 ## Decisione e comportamento
 
@@ -95,7 +97,42 @@ errori grezzi del database non vengono stampati. Sei casi locali del controllo
 sono passati; l'helper e stato eseguito contro il server e ha restituito ok=true,
 revision_after=20261125_0007 e revision_constraints_verified=true.
 
-## Ripristino
+## Collaudo reale e ripristino
+
+### Smoke test reale preparato, non ancora eseguito
+
+scripts/smoke_revisions.py richiede smoke_analysis.py e smoke_isolation.py nella
+stessa directory. Si esegue sulla VM Jarvis, nel nuovo pilota, senza chiedere
+credenziali all'utente. Verifica presenza del runtime revisioni, provider locale
+Open WebUI e revisione DB 0007 prima di creare le fixture. Usa due account
+temporanei, con password casuali in memoria e guardie gia collaudate.
+
+Il primo originale e caricato via API; la sua analisi iniziale e una fixture
+deterministica nel solo nuovo documento, senza una prima inferenza. Due POST
+concorrenti, con contenuti distinti e lo stesso If-Match, devono produrre un solo
+successore (200 e 409). Il test verifica entrambi gli originali prima e dopo il
+rifiuto della loro cancellazione, cronologia, risoluzione corrente, elenco senza
+superseduti, precondizioni 428/412, analisi superata 409, nuova analisi assente e
+accesso estraneo negato anche ai nuovi endpoint.
+
+Una sola nuova richiesta LLM riguarda il successore. Hash/document_id, codice
+con fonte, nuova scadenza con fonte e assenza della vecchia data sono controllati;
+seguono rilettura e riuso della nuova analisi. Nessun testo del modello o
+ragionamento viene stampato. Il test non misura completezza generale su documenti.
+
+Le versioni sintetiche restano nel loro nucleo per diagnosi, anche in caso di
+successo: non si aggirano i vincoli di conservazione cancellando link o righe.
+Il finally disattiva i due account e revoca le sessioni; audit/identita rimangono.
+Il manifest contiene solo riferimenti sintetici, senza credenziali. Per il
+recupero dopo interruzione usare smoke_isolation.py --deactivate-run RUN_ID nella
+stessa directory, come documentato in MULTIUSER_PILOT.md. Nessun rilascio pubblico.
+
+Nove scenari simulati dello smoke coprono successo, due successori, originale
+alterato, vecchia analisi/cache, perdita di isolamento, hash/data sbagliati e
+disattivazione dopo timeout. Il collaudo SQL/S3/API e l'inferenza reale della
+revisione rimangono pendenti fino al risultato dell'operatore.
+
+### Ripristino del pilota
 
 Conservare le immagini precedenti e gli originali. Il ripristino del precedente
 pilota non richiede downgrade: la tabella aggiuntiva puo rimanere intatta.

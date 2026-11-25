@@ -12,8 +12,10 @@ Lint/formattazione/compilazione e 110 test locali mirati superati. Il collaudo
 Linux del commit d9518bb6ba990aeefd79fa6edb7e32b7783403de ha restituito
 CANDIDATE_CHECKS=PASS (conteggi non forniti dall'operatore). L'helper ha verificato
 passaggio 0006 -> 0007 e vincoli, con guardie su destinazione, TLS, schema e
-versione; sei casi locali passati. Avvio del nuovo pilota e collaudo degli endpoint
-revisioni con storage reale ancora pendenti.
+versione; sei casi locali passati. Il nuovo jarvis-backend-revisions-pilot e
+avviato e restituisce ready con PostgreSQL e object storage available. Collaudo
+degli endpoint revisioni con storage reale e nuova inferenza ancora pendente;
+helper scripts/smoke_revisions.py preparato e provato localmente.
 Evidenza: docs/validation/2026-11-25-revisions-candidate.json.
 Contratto, limiti e ripristino: docs/DOCUMENT_REVISIONS.md.
 

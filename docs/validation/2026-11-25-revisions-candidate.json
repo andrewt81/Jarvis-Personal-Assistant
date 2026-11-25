@@ -16,8 +16,16 @@
     "guard_script_commit": "6a95f7d7e618ffffc3b553d857b8da06c0464511"
   },
   "target_revision": "20261125_0007",
-  "new_revision_pilot_started": false,
+  "new_revision_pilot_started": true,
+  "revision_pilot": {
+    "container": "jarvis-backend-revisions-pilot",
+    "status": "ready",
+    "postgresql": "available",
+    "object_storage": "available",
+    "public_ports_published": false
+  },
   "live_revision_endpoints_verified": false,
+  "revision_smoke_status": "prepared_not_executed_on_server",
   "existing_pilots_preserved": true,
   "production_release": false,
   "separate_migration_guard": {
