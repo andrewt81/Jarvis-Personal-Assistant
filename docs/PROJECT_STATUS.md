@@ -2,6 +2,15 @@
 
 Ultimo aggiornamento: 25 novembre 2026.
 
+## Candidato per revisioni documentali
+
+Implementato un incremento candidato con originali immutabili collegati, If-Match,
+risoluzione della revisione corrente e rifiuto delle analisi superate. Migrazione
+aggiuntiva 20261125_0007 preparata ma NON applicata; piloti esistenti invariati.
+Lint/formattazione/compilazione e 110 test locali mirati superati. Test HTTP/DDL
+e suite Linux del nuovo candidato ancora da eseguire, prima di migrare o avviarlo.
+Contratto, limiti e ripristino: docs/DOCUMENT_REVISIONS.md.
+
 ## Collaudo multiutente del 25 novembre
 
 Superata la prova con due account temporanei autenticati sul backend reale:

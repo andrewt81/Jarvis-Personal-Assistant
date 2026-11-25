@@ -33,6 +33,7 @@ class Households:
 class Documents:
     def __init__(self) -> None:
         self.values: dict[UUID, Document] = {}
+        self.links: dict[UUID, UUID] = {}
 
     async def create(self, document: Document) -> Document:
         value = replace(document, created_at=datetime.now(UTC))
@@ -40,7 +41,11 @@ class Documents:
         return value
 
     async def list(self, household_id: UUID) -> list[Document]:
-        return [value for value in self.values.values() if value.household_id == household_id]
+        return [
+            value
+            for value in self.values.values()
+            if value.household_id == household_id and value.id not in self.links
+        ]
 
     async def find(self, household_id: UUID, document_id: UUID) -> Document | None:
         value = self.values.get(document_id)
@@ -48,10 +53,40 @@ class Documents:
 
     async def delete(self, household_id: UUID, document_id: UUID) -> bool:
         value = await self.find(household_id, document_id)
-        if value is None:
+        if value is None or document_id in self.links or document_id in self.links.values():
             return False
         del self.values[document_id]
         return True
+
+    async def current(self, household_id: UUID, document_id: UUID) -> Document | None:
+        while document_id in self.links:
+            document_id = self.links[document_id]
+        return await self.find(household_id, document_id)
+
+    async def revisions(self, household_id: UUID, document_id: UUID) -> list[Document]:
+        ids = {document_id}
+        while True:
+            expanded = ids | {
+                value
+                for pair in self.links.items()
+                if any(item in ids for item in pair)
+                for value in pair
+            }
+            if expanded == ids:
+                break
+            ids = expanded
+        return [
+            value
+            for value in self.values.values()
+            if value.household_id == household_id and value.id in ids
+        ]
+
+    async def create_revision(self, previous: Document, document: Document) -> Document | None:
+        if previous.id in self.links or previous.id not in self.values:
+            return None
+        created = await self.create(document)
+        self.links[previous.id] = created.id
+        return created
 
 
 class Storage:
