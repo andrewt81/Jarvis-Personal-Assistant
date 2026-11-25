@@ -99,7 +99,20 @@ revision_after=20261125_0007 e revision_constraints_verified=true.
 
 ## Collaudo reale e ripristino
 
-### Smoke test reale preparato, non ancora eseguito
+### Smoke test reale: revisioni riuscite, nuova analisi in diagnosi
+
+L'esecuzione dell'operatore ha confermato i controlli su revisioni con database e
+S3 reali: precondizioni, richieste concorrenti 200/409, unico successore, entrambi
+gli originali e cronologia conservati, cancellazione collegata negata, precedente
+analisi non presentata come corrente, nuova revisione inizialmente senza analisi
+e accesso estraneo bloccato. La richiesta di nuova analisi ha restituito 503;
+non e dimostrata la causa e il collaudo completo resta aperto. I due account sono
+disattivati e le sessioni revocate, gli originali sintetici e l'audit conservati.
+
+Una lettura da questo ambiente verso /health su Ultron ha ricevuto 502. Non
+equivale a una verifica del percorso Jarvis -> Ultron: controlli dal container e
+log di fase filtrati sono il prossimo passo. Nessun retry dello smoke, reset di
+chiavi, cambiamento di parametri o riavvio e stato effettuato durante la diagnosi.
 
 scripts/smoke_revisions.py richiede smoke_analysis.py e smoke_isolation.py nella
 stessa directory. Si esegue sulla VM Jarvis, nel nuovo pilota, senza chiedere
@@ -130,7 +143,8 @@ stessa directory, come documentato in MULTIUSER_PILOT.md. Nessun rilascio pubbli
 Nove scenari simulati dello smoke coprono successo, due successori, originale
 alterato, vecchia analisi/cache, perdita di isolamento, hash/data sbagliati e
 disattivazione dopo timeout. Il collaudo SQL/S3/API e l'inferenza reale della
-revisione rimangono pendenti fino al risultato dell'operatore.
+revisione e stata tentata con il risultato parziale descritto sopra. Gli scenari
+simulati non vengono scambiati per successo dell'inferenza sul server.
 
 ### Ripristino del pilota
 

@@ -24,8 +24,35 @@
     "object_storage": "available",
     "public_ports_published": false
   },
-  "live_revision_endpoints_verified": false,
-  "revision_smoke_status": "prepared_not_executed_on_server",
+  "live_revision_endpoints_verified": true,
+  "new_revision_inference_verified": false,
+  "revision_smoke_status": "partial_pass_new_analysis_503",
+  "live_revision_smoke": {
+    "ok": false,
+    "fixture_run_id": "631592576bfa4cc797e4b5ed0ce1c285",
+    "analysis_http_status": 503,
+    "error": "new_revision_analysis_failed",
+    "concurrent_revision_http_statuses": [200, 409],
+    "concurrent_requests_single_successor_verified": true,
+    "both_originals_and_history_preserved": true,
+    "linked_original_deletion_blocked": true,
+    "revision_preconditions_verified": true,
+    "superseded_analysis_invalidated_for_current_use": true,
+    "new_revision_initially_without_analysis": true,
+    "foreign_revision_access_blocked": true,
+    "initial_analysis_fixture_verified": true,
+    "new_revision_llm_request_started": true,
+    "synthetic_revisions_retained": true,
+    "test_accounts_disabled": true,
+    "test_sessions_revoked": true,
+    "fixture_identity_and_audit_rows_retained": true,
+    "failure_cause": "not_yet_verified"
+  },
+  "read_only_diagnosis": {
+    "agent_environment_ultron_health_http_status": 502,
+    "jarvis_to_ultron_health_verified_in_this_attempt": false,
+    "note": "The agent-side HTTP result is not attributed to the Jarvis-to-Ultron path."
+  },
   "existing_pilots_preserved": true,
   "production_release": false,
   "separate_migration_guard": {
